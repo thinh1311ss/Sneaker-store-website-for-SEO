@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getAllProducts, getAllBrands } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
@@ -13,9 +14,18 @@ const heroSlides = [
 ];
 
 export default function HomePage() {
-  const products = getAllProducts();
+  const allProducts = getAllProducts();
   const brands = getAllBrands();
-  const featuredProducts = products.filter((p) => p.discount && p.discount >= 20);
+  const featuredProducts = allProducts.filter((p) => p.discount && p.discount >= 20);
+
+  const searchParams = useSearchParams();
+  const selectedBrands = searchParams.getAll('brand');
+
+  // Filter products by selected brands (if any)
+  const products =
+    selectedBrands.length > 0
+      ? allProducts.filter((p) => selectedBrands.includes(p.brand))
+      : allProducts;
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -71,7 +81,7 @@ export default function HomePage() {
           {/* Brand Pills */}
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {brands.map((brand) => (
-              <Link key={brand} href={`/thuong-hieu/${brand.toLowerCase().replace(' ', '-')}`}
+              <Link key={brand} href={`/collections/${brand.toLowerCase().replace(' ', '-')}`}
                 className="px-5 py-2.5 rounded-full border border-white/20 hover:border-white/60 hover:bg-white/10 transition-all text-sm font-medium">
                 {brand}
               </Link>
@@ -80,7 +90,7 @@ export default function HomePage() {
 
           {/* CTA */}
           <div className="flex gap-4">
-            <Link href="/khuyen-mai" className="px-8 py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-all">
+            <Link href="/collections/uu-dai" className="px-8 py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-all">
               🔥 Xem Khuyến Mãi
             </Link>
             <Link href="#products" className="px-8 py-4 border-2 border-white/30 hover:border-white font-bold rounded-full transition-all">
@@ -104,11 +114,11 @@ export default function HomePage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <span className="inline-block px-4 py-1 bg-red-100 text-red-600 rounded-full text-sm font-semibold mb-4">HOT DEALS</span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Đang Giảm Giá</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">Đang Giảm Giá Mạnh</h2>
               <p className="text-gray-600">Tiết kiệm đến 40% cho các sản phẩm hot</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.slice(0, 8).map((product) => (
+              {featuredProducts.slice(0, 8).filter((product) => (product.discount ?? 0) >= 40).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -134,55 +144,55 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-<section className="py-16 bg-gray-900 text-white">
-  <div className="container mx-auto px-4">
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-      {/* Chính hãng */}
-      <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-          <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        <h3 className="font-bold text-lg mb-1">100% Chính Hãng</h3>
-        <p className="text-sm text-gray-400">Cam kết đền 200%</p>
-      </div>
+      <section className="py-16 bg-gray-900 text-white">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {/* Chính hãng */}
+            <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-lg mb-1">100% Chính Hãng</h3>
+              <p className="text-sm text-gray-400">Cam kết đền 200%</p>
+            </div>
 
-      {/* Freeship */}
-      <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-blue-500/20 flex items-center justify-center">
-          <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-          </svg>
-        </div>
-        <h3 className="font-bold text-lg mb-1">Freeship</h3>
-        <p className="text-sm text-gray-400">Đơn từ 2 triệu</p>
-      </div>
+            {/* Freeship */}
+            <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-lg mb-1">Freeship</h3>
+              <p className="text-sm text-gray-400">Đơn từ 2 triệu</p>
+            </div>
 
-      {/* Đổi trả */}
-      <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-purple-500/20 flex items-center justify-center">
-          <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </div>
-        <h3 className="font-bold text-lg mb-1">Đổi Trả 30 Ngày</h3>
-        <p className="text-sm text-gray-400">Đổi size miễn phí</p>
-      </div>
+            {/* Đổi trả */}
+            <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-lg mb-1">Đổi Trả 30 Ngày</h3>
+              <p className="text-sm text-gray-400">Đổi size miễn phí</p>
+            </div>
 
-      {/* COD */}
-      <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-amber-500/20 flex items-center justify-center">
-          <svg className="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
+            {/* COD */}
+            <div className="text-center p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                <svg className="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-lg mb-1">Thanh Toán COD</h3>
+              <p className="text-sm text-gray-400">Nhận hàng rồi trả tiền</p>
+            </div>
+          </div>
         </div>
-        <h3 className="font-bold text-lg mb-1">Thanh Toán COD</h3>
-        <p className="text-sm text-gray-400">Nhận hàng rồi trả tiền</p>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
     </>
   );
 }

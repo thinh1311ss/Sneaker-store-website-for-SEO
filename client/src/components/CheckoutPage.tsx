@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/products";
@@ -24,6 +25,16 @@ export default function CheckoutPage() {
   const { cartItems, cartCount, clearCart } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  const [showBankTransfer, setShowBankTransfer] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<"cod" | "transfer">(
+    "cod",
+  );
+  // Xử lý khi chọn phương thức thanh toán
+  const handlePaymentChange = (method: "cod" | "transfer") => {
+    setSelectedPayment(method);
+    setShowBankTransfer(method === "transfer");
+  };
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: user?.userName || "",
@@ -442,13 +453,110 @@ export default function CheckoutPage() {
               <h3 className="font-medium text-gray-900 mb-2">
                 Phương thức thanh toán
               </h3>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
+
+              <div className="space-y-4">
+                {/* COD */}
+                <div className="flex items-center">
+                  <input
+                    id="payment-cod"
+                    name="payment-method"
+                    type="radio"
+                    checked={selectedPayment === "cod"}
+                    onChange={() => handlePaymentChange("cod")}
+                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                  />
+                  <label
+                    htmlFor="payment-cod"
+                    className="ml-3 block text-sm font-medium text-gray-700 cursor-pointer"
+                  >
+                    Thanh toán khi nhận hàng (COD)
+                  </label>
                 </div>
-                <span className="text-gray-700">
-                  Thanh toán khi nhận hàng (COD)
-                </span>
+
+                {/* Chuyển khoản ngân hàng */}
+                <div>
+                  <div className="flex items-center">
+                    <input
+                      id="payment-transfer"
+                      name="payment-method"
+                      type="radio"
+                      checked={selectedPayment === "transfer"}
+                      onChange={() => handlePaymentChange("transfer")}
+                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                    />
+                    <label
+                      htmlFor="payment-transfer"
+                      className="ml-3 block text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      Chuyển khoản ngân hàng
+                    </label>
+                  </div>
+
+                  {/* Phần thông tin chuyển khoản hiện khi chọn */}
+                  {showBankTransfer && (
+                    <div className="mt-4 ml-7 p-5 bg-gray-50 border border-gray-200 rounded-2xl">
+                      <p className="text-sm text-gray-600 mb-4">
+                        Hiện tại các cổng thanh toán đang gặp vấn đề. <br />
+                        Xin lỗi vì sự bất tiện này. Bạn có thể chuyển khoản trực
+                        tiếp cho shop nhé!
+                      </p>
+
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Thông tin ngân hàng */}
+                        <div className="flex-1 space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-900">
+                              Ngân hàng:
+                            </span>
+                            <span className="ml-2 text-gray-700">
+                              Vietcombank
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900">
+                              Số tài khoản:
+                            </span>
+                            <span className="ml-2 font-mono text-gray-700">
+                              1030995840
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900">
+                              Chủ tài khoản:
+                            </span>
+                            <span className="ml-2 text-gray-700">
+                              Nguyen Phuoc Thinh
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900">
+                              Nội dung CK:
+                            </span>
+                            <span className="ml-2 text-gray-700">
+                              Đơn hàng #
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Mã QR */}
+                        <div className="flex-shrink-0 text-center">
+                          <p className="text-xs text-gray-500 mb-2">
+                            Quét mã QR để chuyển khoản
+                          </p>
+                          <div className="">
+                            <Image
+                              src="/Qr.jpg"
+                              alt="Mã QR chuyển khoản"
+                              width={160}
+                              height={160}
+                              className="mx-auto"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

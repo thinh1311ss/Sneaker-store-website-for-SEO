@@ -12,6 +12,7 @@ import ProductCard from "./ProductCard";
 interface ProductDetailProps {
   product?: Product;
   relatedProducts?: Product[];
+  collection?: string;
 }
 
 interface BackendProduct {

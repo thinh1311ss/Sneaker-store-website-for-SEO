@@ -7,12 +7,12 @@ import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   product: Product;
+  collection?: string; // truyền vào để build đúng URL
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, collection }: ProductCardProps) {
   const { cartItems, addToCart, removeFromCart } = useCart();
 
-  // Check xem product có trong cart không
   const inCart = cartItems.some((item) => item.product.id === product.id);
 
   const handleToggleCart = (e: React.MouseEvent) => {
@@ -25,10 +25,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  // Fallback về brand nếu không có collection truyền vào
+  const collectionSlug =
+    collection || product.brand.toLowerCase().replace(/ /g, "-");
+  const productUrl = `/collections/${collectionSlug}/products/${product.slug}`;
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col">
       {/* Image */}
-      <Link href={`/san-pham/${product.slug}`} className="block flex-shrink-0">
+      <Link href={productUrl} className="block flex-shrink-0">
         <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
           <Image
             src={product.image}
@@ -50,7 +55,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">
           {product.brand}
         </span>
-        <Link href={`/san-pham/${product.slug}`}>
+        <Link href={productUrl}>
           <h3 className="font-semibold mt-1 mb-2 line-clamp-2 group-hover:text-red-600 transition-colors leading-tight">
             {product.name}
           </h3>
@@ -67,11 +72,6 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </div>
-          {product.sizes && (
-            <p className="text-xs text-gray-400 mt-1 line-clamp-1">
-              {product.sizes}
-            </p>
-          )}
         </div>
       </div>
     </div>
