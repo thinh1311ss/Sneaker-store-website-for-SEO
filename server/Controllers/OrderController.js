@@ -1,6 +1,8 @@
-const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const orderModel = require("../Models/OrderModel");
 const productModel = require("../Models/ProductModel");
+
+const SHIPPING_FEE = 30000;
 
 const getListOrder = async (req, res) => {
   try {
@@ -41,7 +43,6 @@ const getUserOrders = async (req, res) => {
 
 const postOrder = async (req, res) => {
   try {
-    console.log("postOrder called", req.body);
     const {
       user,
       orderItems,
@@ -49,82 +50,111 @@ const postOrder = async (req, res) => {
       note,
       orderTime,
       paymentMethod,
-      totalPrice,
     } = req.body;
 
     if (!user || !Array.isArray(orderItems) || orderItems.length === 0) {
       return res.status(400).json({ error: "Invalid order payload" });
     }
 
+    // 1. Chuyển đổi userId
+    let userId;
+    if (mongoose.Types.ObjectId.isValid(user)) {
+      userId = new mongoose.Types.ObjectId(user);
+    } else {
+      return res.status(400).json({ error: "Invalid user ID format" });
+    }
+
+    let subtotal = 0;
+    const enrichedOrderItems = [];
+
+    // 2. Lặp qua từng item để check stock và tính tiền
     for (const item of orderItems) {
       const { product: productId, size, quantity } = item;
-      const product = await productModel.findById(productId);
+      const qty = Number(quantity);
+
+      // Tìm sản phẩm theo trường 'id' (Number)
+      const product = await productModel.findOne({ id: Number(productId) });
+
       if (!product) {
         return res
           .status(404)
-          .json({ error: `Product ${productId} not found` });
-      }
-      if (!quantity || quantity <= 0) {
-        return res
-          .status(400)
-          .json({ error: "Order item quantity must be greater than zero" });
+          .json({ error: `Sản phẩm ID ${productId} không tồn tại` });
       }
 
-      if (size && typeof size === "string") {
-        const currentSizeQty = Number(product.sizes?.[size] ?? 0);
-        if (currentSizeQty < quantity) {
+      // Check tồn kho theo size
+      if (size) {
+        const stockAvailable = product.sizes ? product.sizes[size] : 0;
+        if (stockAvailable < qty) {
           return res
             .status(400)
-            .json({ error: `Not enough stock for size ${size}` });
+            .json({
+              error: `Sản phẩm ${product.productName} size ${size} không đủ hàng`,
+            });
         }
-        const updatedSizes = {
-          ...product.sizes,
-          [size]: currentSizeQty - Number(quantity),
-        };
-        const updatedQuantity = Object.values(updatedSizes).reduce(
-          (sum, qty) => sum + Number(qty),
-          0,
+
+        // Cập nhật tồn kho
+        const newSizes = { ...product.sizes, [size]: stockAvailable - qty };
+        const newTotalQty = Object.values(newSizes).reduce((a, b) => a + b, 0);
+
+        await productModel.findOneAndUpdate(
+          { id: Number(productId) },
+          { sizes: newSizes, quantity: newTotalQty },
         );
-        await productModel.findByIdAndUpdate(productId, {
-          sizes: updatedSizes,
-          quantity: updatedQuantity,
-        });
-      } else {
-        if (product.quantity < quantity) {
-          return res.status(400).json({
-            error: `Not enough stock for product ${product.productName}`,
-          });
-        }
-        await productModel.findByIdAndUpdate(productId, {
-          quantity: product.quantity - Number(quantity),
-        });
       }
+
+      enrichedOrderItems.push({
+        name: product.productName,
+        quantity: qty,
+        size: size || "",
+        price: product.price,
+        image:
+          product.images && product.images.length > 0 ? product.images[0] : "",
+        product: Number(productId),
+      });
+
+      subtotal += product.price * qty;
     }
 
-    await orderModel.create({
-      user,
-      orderItems,
-      shippingAddress,
-      note,
-      orderTime,
+    const shipping = subtotal > 500000 ? 0 : SHIPPING_FEE;
+    const finalPrice = subtotal + shipping;
+
+    // 3. Tạo đơn hàng mới
+    const newOrder = await orderModel.create({
+      user: userId,
+      orderItems: enrichedOrderItems,
+      shippingAddress: {
+        fullName: shippingAddress.fullName,
+        telephone: Number(shippingAddress.telephone),
+        address: shippingAddress.address,
+        email: shippingAddress.email || "",
+      },
+      note: note || "",
+      orderTime: orderTime ? new Date(orderTime) : new Date(),
       paymentMethod,
-      totalPrice,
+      totalPrice: finalPrice,
     });
-    return res.status(200).send("create order successfully");
+
+    return res.status(200).json({
+      message: "Đặt hàng thành công",
+      orderId: newOrder._id,
+      totalPrice: finalPrice,
+    });
   } catch (error) {
-    console.log("postOrder error", error);
-    return res.status(500).json({ error: "Cannot create order" });
+    console.error("postOrder error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", detail: error.message });
   }
 };
 
 const deleteOrder = async (req, res) => {
   try {
-    const orderId = req.params.orderId;
+    const { orderId } = req.params;
     const deleted = await orderModel.findByIdAndDelete(orderId);
     if (!deleted) {
       return res.status(404).json({ error: "Order not found" });
     }
-    return res.status(200).send("delete order successfully");
+    return res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
     console.log("deleteOrder error", error);
     return res.status(500).json({ error: "Cannot delete order" });
@@ -158,10 +188,10 @@ const updateOrder = async (req, res) => {
 };
 
 module.exports = {
-  getListOrder: getListOrder,
-  postOrder: postOrder,
-  deleteOrder: deleteOrder,
-  updateOrder: updateOrder,
-  getOrderDetail: getOrderDetail,
-  getUserOrders: getUserOrders,
+  getListOrder,
+  postOrder,
+  deleteOrder,
+  updateOrder,
+  getOrderDetail,
+  getUserOrders,
 };

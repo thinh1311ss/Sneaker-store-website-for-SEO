@@ -9,6 +9,7 @@ const productRoute = require("./Router/ProductRoute");
 const voucherRoute = require("./Router/VoucherRoute");
 const orderRoute = require("./Router/OrderRoute");
 const contactRoute = require("./Router/ContactRoute");
+const blogRoute = require("./Router/blogRoutes");
 
 require("dotenv").config();
 
@@ -33,6 +34,7 @@ connectDb();
 app.use("/auth/admin", userRoute);
 app.use("/api/auth", authRoute);
 app.use("/api", productRoute);
+app.use("/api", blogRoute);
 app.use("/auth/admin", voucherRoute);
 app.use("/api/auth", orderRoute);
 app.use("/api/auth", contactRoute);

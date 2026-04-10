@@ -14,8 +14,6 @@ interface ShippingAddress {
   street: string;
   city: string;
   state: string;
-  zipCode: string;
-  country: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -42,8 +40,6 @@ export default function CheckoutPage() {
     street: "",
     city: "",
     state: "",
-    zipCode: "",
-    country: "Việt Nam",
   });
 
   const [note, setNote] = useState("");
@@ -99,24 +95,22 @@ export default function CheckoutPage() {
     setError("");
 
     try {
-      // Prepare order data
       const orderData = {
-        user: user?._id,
+        user: user?._id, // Gửi ObjectId của User
         orderItems: cartItems.map((item) => ({
-          product: item.product.id,
+          product: Number(item.product.id), // Đảm bảo gửi kiểu Number (ví dụ: 9)
           size: item.size,
           quantity: item.quantity,
         })),
         shippingAddress: {
-          street: shippingAddress.street,
-          city: shippingAddress.city,
-          state: shippingAddress.state,
-          zipCode: shippingAddress.zipCode,
-          country: shippingAddress.country,
+          fullName: shippingAddress.fullName,
+          telephone: shippingAddress.phone, // Controller sẽ ép kiểu Number sau
+          address: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}`,
+          email: user?.email || "",
         },
         note: note.trim(),
         orderTime: new Date().toISOString(),
-        paymentMethod: "COD",
+        paymentMethod: selectedPayment === "cod" ? "COD" : "Transfer",
         totalPrice: total,
       };
 
@@ -132,17 +126,13 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Success
         setSuccess(true);
-        clearCart(); // Clear cart after successful order
-
-        // Show success message and redirect
+        clearCart();
         setTimeout(() => {
           router.push("/orders");
         }, 2000);
       } else {
-        // Error
-        setError(data.error || "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        setError(data.error || "Có lỗi xảy ra khi đặt hàng.");
       }
     } catch (err) {
       console.error("Order submission error:", err);
@@ -353,22 +343,6 @@ export default function CheckoutPage() {
                     placeholder="Tỉnh/Thành phố"
                   />
                 </div>
-              </div>
-
-              {/* Zip Code */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mã bưu điện
-                </label>
-                <input
-                  type="text"
-                  value={shippingAddress.zipCode}
-                  onChange={(e) =>
-                    handleAddressChange("zipCode", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Mã bưu điện (tùy chọn)"
-                />
               </div>
 
               {/* Note */}
