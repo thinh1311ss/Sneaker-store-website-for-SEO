@@ -1,4 +1,4 @@
-import { getAllProducts, getAllBrands } from "@/lib/products";
+import { getAllProducts, getAllBrands } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import ShopFilter from "@/components/ShopFilter";
 import ShopSort from "@/components/ShopSort";
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   else if (collection === "nu") title = "Giày Nữ";
   else if (collection === "uu-dai") title = "Sản Phẩm Ưu Đãi";
   else {
-    const brands = getAllBrands();
+    const brands = await getAllBrands();
     const matchedBrand = brands.find(
       (b) => b.toLowerCase().replace(/ /g, "-") === collection,
     );
@@ -60,10 +60,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const ITEMS_PER_PAGE = 12;
 
-export default function CollectionPage({ params, searchParams }: Props) {
+export default async function CollectionPage({ params, searchParams }: Props) {
   const collection = params.collection.toLowerCase();
-  const allProducts = getAllProducts();
-  const brands = getAllBrands();
+  const [allProducts, brands] = await Promise.all([
+    getAllProducts(),
+    getAllBrands(),
+  ]);
 
   let filteredProducts = [...allProducts];
   let collectionTitle = "Bộ sưu tập";

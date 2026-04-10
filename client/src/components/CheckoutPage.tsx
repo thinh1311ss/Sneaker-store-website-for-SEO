@@ -103,8 +103,8 @@ export default function CheckoutPage() {
       const orderData = {
         user: user?._id,
         orderItems: cartItems.map((item) => ({
-          product: item.product.id,
-          size: item.size,
+          product: item.product._id || item.product.id, // Dùng _id từ MongoDB
+          size: item.size ? item.size.replace('US ', 'US').replace('.', '_') : undefined, // Convert "US 6.5" -> "US6_5"
           quantity: item.quantity,
         })),
         shippingAddress: {
@@ -116,7 +116,7 @@ export default function CheckoutPage() {
         },
         note: note.trim(),
         orderTime: new Date().toISOString(),
-        paymentMethod: "COD",
+        paymentMethod: selectedPayment === "cod" ? "COD" : "BANK_TRANSFER",
         totalPrice: total,
       };
 
@@ -129,8 +129,9 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData),
       });
 
-      const data = await response.json();
-
+      // Backend trả về text "create order successfully" không phải JSON
+      const responseText = await response.text();
+      
       if (response.ok) {
         // Success
         setSuccess(true);
@@ -141,8 +142,13 @@ export default function CheckoutPage() {
           router.push("/orders");
         }, 2000);
       } else {
-        // Error
-        setError(data.error || "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        // Error - try parse JSON error
+        try {
+          const errorData = JSON.parse(responseText);
+          setError(errorData.error || "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        } catch {
+          setError(responseText || "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        }
       }
     } catch (err) {
       console.error("Order submission error:", err);

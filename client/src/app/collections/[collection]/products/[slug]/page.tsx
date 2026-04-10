@@ -1,4 +1,4 @@
-import { getProductBySlug, getAllSlugs, getProductsByBrand } from '@/lib/products';
+import { getProductBySlug, getProductsByBrand } from '@/lib/api';
 import { generateProductSchema, siteConfig } from '@/lib/seo';
 import ProductDetail from '@/components/ProductDetail';
 import { notFound } from 'next/navigation';
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = getProductBySlug(params.slug);
+  const product = await getProductBySlug(params.slug);
   
   if (!product) {
     return {
@@ -39,14 +39,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ProductPage({ params }: Props) {
-  const product = getProductBySlug(params.slug);
+export default async function ProductPage({ params }: Props) {
+  const product = await getProductBySlug(params.slug);
   
   if (!product) {
     notFound();
   }
 
-  const relatedProducts = getProductsByBrand(product.brand).filter(p => p.id !== product.id).slice(0, 4);
+  const brandProducts = await getProductsByBrand(product.brand);
+  const relatedProducts = brandProducts.filter(p => (p._id || p.id) !== (product._id || product.id)).slice(0, 4);
 
   const jsonLd = generateProductSchema(product);
 

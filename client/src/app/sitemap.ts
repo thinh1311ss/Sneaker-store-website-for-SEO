@@ -1,10 +1,12 @@
 import { MetadataRoute } from 'next';
-import { getAllProducts, getAllBrands } from '@/lib/products';
+import { getAllProducts, getAllBrands } from '@/lib/api';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://sneakerstore.vn';
-  const products = getAllProducts();
-  const brands = getAllBrands();
+  const [products, brands] = await Promise.all([
+    getAllProducts(),
+    getAllBrands(),
+  ]);
 
   // Trang chính
   const staticPages = [

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAllBrands } from "@/lib/products";
+import { getAllBrands } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 
@@ -76,10 +76,23 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [brands, setBrands] = useState<string[]>([]);
   const router = useRouter();
-  const brands = getAllBrands();
   const { cartCount } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
+
+  // Fetch brands từ API
+  useEffect(() => {
+    async function fetchBrands() {
+      try {
+        const data = await getAllBrands();
+        setBrands(data);
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+      }
+    }
+    fetchBrands();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
