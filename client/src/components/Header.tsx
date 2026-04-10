@@ -211,7 +211,7 @@ export default function Header() {
             <Link href="/collections/uu-dai" className="text-red-500 font-semibold">
               Ưu đãi
             </Link>
-            <Link href="/lien-he" className="hover:text-red-500 transition">
+            <Link href="/blog" className="hover:text-red-500 transition">
               Blog
             </Link>
           </nav>
