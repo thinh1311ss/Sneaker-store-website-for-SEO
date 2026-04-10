@@ -4,7 +4,7 @@ const productModel = require("../Models/ProductModel");
 
 const getListOrder = async (req, res) => {
   try {
-    const orders = await orderModel.find();
+    const orders = await orderModel.find().populate("user", "userName email");
     return res.status(200).send(orders);
   } catch (error) {
     console.log("getListOrder error", error);

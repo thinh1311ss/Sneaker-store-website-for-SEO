@@ -164,7 +164,7 @@ export async function searchProductsFromAPI(query: string): Promise<Product[]> {
   }
 }
 
-// ============ BACKWARD COMPATIBLE EXPORTS ============
+//BACKWARD COMPATIBLE EXPORTS
 // Giữ tên cũ để không phải sửa nhiều file
 export const getAllProducts = getAllProductsFromAPI;
 export const getProductBySlug = getProductBySlugFromAPI;

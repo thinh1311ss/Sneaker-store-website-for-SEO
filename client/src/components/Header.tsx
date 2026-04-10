@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getAllBrands } from "@/lib/api";
+import { getAllBrands, searchProducts } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { formatPrice, Product } from "@/lib/products";
 
 // SVG Icons
 const SearchIcon = () => (
@@ -77,6 +78,10 @@ export default function Header() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [brands, setBrands] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { cartCount } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
@@ -94,13 +99,56 @@ export default function Header() {
     fetchBrands();
   }, []);
 
+  // Search suggestions với debounce
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchInput.trim().length >= 2) {
+        setIsSearching(true);
+        try {
+          const results = await searchProducts(searchInput);
+          setSuggestions(results.slice(0, 5)); // Chỉ lấy 5 gợi ý
+          setShowSuggestions(true);
+        } catch (error) {
+          console.error('Search error:', error);
+          setSuggestions([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchInput)}`);
       setSearchInput("");
       setIsSearchExpanded(false);
+      setShowSuggestions(false);
     }
+  };
+
+  const handleSuggestionClick = (product: Product) => {
+    router.push(`/collections/${product.brand.toLowerCase().replace(' ', '-')}/products/${product.slug}`);
+    setSearchInput("");
+    setShowSuggestions(false);
+    setIsSearchExpanded(false);
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
@@ -109,6 +157,7 @@ export default function Header() {
     } else if (e.key === "Escape") {
       setIsSearchExpanded(false);
       setSearchInput("");
+      setShowSuggestions(false);
     }
   };
 
@@ -168,7 +217,7 @@ export default function Header() {
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
             <div
               className={`relative flex items-center w-full transition-all duration-300 ${
                 isSearchExpanded
@@ -182,11 +231,9 @@ export default function Header() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                onFocus={() => setIsSearchExpanded(true)}
-                onBlur={() => {
-                  if (!searchInput.trim()) {
-                    setIsSearchExpanded(false);
-                  }
+                onFocus={() => {
+                  setIsSearchExpanded(true);
+                  if (suggestions.length > 0) setShowSuggestions(true);
                 }}
                 className={`flex-1 px-4 py-2 bg-transparent outline-none text-sm transition-all duration-300 ${
                   isSearchExpanded ? "w-full" : "w-0 opacity-0"
@@ -204,8 +251,46 @@ export default function Header() {
                   isSearchExpanded ? "text-red-500" : "text-gray-600"
                 }`}
               >
-                <SearchIcon />
+                {isSearching ? (
+                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <SearchIcon />
+                )}
               </button>
+
+              {/* Search Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                  {suggestions.map((product) => (
+                    <button
+                      key={product._id || product.id}
+                      onClick={() => handleSuggestionClick(product)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-b-0"
+                    >
+                      <img
+                        src={product.image || product.images?.[0] || '/placeholder.png'}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-gray-500">{product.brand}</p>
+                      </div>
+                      <span className="text-sm font-semibold text-red-600 whitespace-nowrap">
+                        {formatPrice(product.price)}
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={(e) => handleSearch(e)}
+                    className="w-full px-4 py-3 text-sm text-center text-red-600 hover:bg-red-50 transition font-medium"
+                  >
+                    Xem tất cả kết quả cho "{searchInput}"
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
