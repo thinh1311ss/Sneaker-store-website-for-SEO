@@ -9,7 +9,7 @@ const productRoute = require("./Router/ProductRoute");
 const voucherRoute = require("./Router/VoucherRoute");
 const orderRoute = require("./Router/OrderRoute");
 const contactRoute = require("./Router/ContactRoute");
-const blogRoute = require("./Router/blogRoutes");
+const blogRoute = require("./Router/BlogRoute");
 
 require("dotenv").config();
 

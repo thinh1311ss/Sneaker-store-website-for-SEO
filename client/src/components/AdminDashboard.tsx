@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -24,11 +25,13 @@ interface Product {
 
 interface Order {
   _id: string;
-  user: {
-    _id: string;
-    userName: string;
-    email: string;
-  } | string;
+  user:
+    | {
+        _id: string;
+        userName: string;
+        email: string;
+      }
+    | string;
   totalPrice: number;
   orderTime: string;
   status: string;
@@ -541,6 +544,13 @@ export default function AdminDashboard() {
               {tab.label}
             </button>
           ))}
+
+          <Link
+            href="/admin/blog-management"
+            className="block w-full rounded-lg border border-gray-200 bg-slate-50 px-4 py-3 text-left text-gray-700 font-medium transition hover:bg-gray-100"
+          >
+            📝 Quản lý Blog
+          </Link>
         </nav>
       </div>
 
@@ -722,14 +732,16 @@ export default function AdminDashboard() {
                                 {order._id.slice(-6)}
                               </td>
                               <td className="px-6 py-4 text-gray-900">
-                                {typeof order.user === 'object' && order.user?.userName 
-                                  ? order.user.userName 
-                                  : order.shippingAddress?.fullName || 'N/A'}
+                                {typeof order.user === "object" &&
+                                order.user?.userName
+                                  ? order.user.userName
+                                  : order.shippingAddress?.fullName || "N/A"}
                               </td>
                               <td className="px-6 py-4 text-gray-700 text-sm">
-                                {typeof order.user === 'object' && order.user?.email 
-                                  ? order.user.email 
-                                  : 'N/A'}
+                                {typeof order.user === "object" &&
+                                order.user?.email
+                                  ? order.user.email
+                                  : "N/A"}
                               </td>
                               <td className="px-6 py-4 font-medium text-red-600">
                                 {formatPrice(order.totalPrice || 0)}
@@ -740,20 +752,34 @@ export default function AdminDashboard() {
                                 )}
                               </td>
                               <td className="px-6 py-4">
-                                <span
-                                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    orderStatusMap[order._id] === "completed"
-                                      ? "bg-green-100 text-green-800"
-                                      : orderStatusMap[order._id] === "pending"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : orderStatusMap[order._id] ===
-                                            "cancelled"
-                                          ? "bg-red-100 text-red-800"
-                                          : "bg-gray-100 text-gray-800"
-                                  }`}
-                                >
-                                  {orderStatusMap[order._id] || order.status}
-                                </span>
+                                {(() => {
+                                  const currentStatus =
+                                    orderStatusMap[order._id] ||
+                                    order.status ||
+                                    "pending";
+
+                                  return (
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                        currentStatus === "completed"
+                                          ? "bg-green-100 text-green-800"
+                                          : currentStatus === "pending"
+                                            ? "bg-yellow-100 text-yellow-800"
+                                            : currentStatus === "cancelled"
+                                              ? "bg-red-100 text-red-800"
+                                              : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {currentStatus === "pending"
+                                        ? "Chờ xử lý"
+                                        : currentStatus === "completed"
+                                          ? "Hoàn thành"
+                                          : currentStatus === "cancelled"
+                                            ? "Đã hủy"
+                                            : currentStatus}
+                                    </span>
+                                  );
+                                })()}
                               </td>
                               <td className="px-6 py-4">
                                 <select

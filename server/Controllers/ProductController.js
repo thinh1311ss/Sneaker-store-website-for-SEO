@@ -37,7 +37,6 @@ const validateSizes = (sizes) => {
 
 const getListProduct = async (req, res) => {
   try {
-    console.log("getListProduct called");
     const products = await productModel.find();
     return res.status(200).send(products);
   } catch (error) {

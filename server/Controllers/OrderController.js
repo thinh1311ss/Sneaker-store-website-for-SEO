@@ -17,7 +17,7 @@ const getListOrder = async (req, res) => {
 const getOrderDetail = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await orderModel.findById(id);
+    const order = await orderModel.findById(id).populate("orderItems.product");
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
@@ -53,7 +53,7 @@ const postOrder = async (req, res) => {
     } = req.body;
 
     if (!user || !Array.isArray(orderItems) || orderItems.length === 0) {
-      return res.status(400).json({ error: "Invalid order payload" });
+      return res.status(400).json({ error: "Dữ liệu đơn hàng không hợp lệ" });
     }
 
     // 1. Chuyển đổi userId
@@ -61,19 +61,18 @@ const postOrder = async (req, res) => {
     if (mongoose.Types.ObjectId.isValid(user)) {
       userId = new mongoose.Types.ObjectId(user);
     } else {
-      return res.status(400).json({ error: "Invalid user ID format" });
+      return res.status(400).json({ error: "Định dạng User ID không hợp lệ" });
     }
 
     let subtotal = 0;
     const enrichedOrderItems = [];
 
-    // 2. Lặp qua từng item để check stock và tính tiền
+    // 2. Duyệt qua từng item để kiểm tra tồn kho và tính tiền
     for (const item of orderItems) {
       const { product: productId, size, quantity } = item;
       const qty = Number(quantity);
 
-      // Tìm sản phẩm theo trường 'id' (Number)
-      const product = await productModel.findOne({ id: Number(productId) });
+      const product = await productModel.findById(productId);
 
       if (!product) {
         return res
@@ -81,23 +80,26 @@ const postOrder = async (req, res) => {
           .json({ error: `Sản phẩm ID ${productId} không tồn tại` });
       }
 
-      // Check tồn kho theo size
+      // Kiểm tra tồn kho theo size
       if (size) {
         const stockAvailable = product.sizes ? product.sizes[size] : 0;
         if (stockAvailable < qty) {
           return res.status(400).json({
-            error: `Sản phẩm ${product.productName} size ${size} không đủ hàng`,
+            error: `Sản phẩm ${product.productName} size ${size} không đủ hàng (Còn lại: ${stockAvailable})`,
           });
         }
 
-        // Cập nhật tồn kho
+        // Cập nhật tồn kho trong Database
         const newSizes = { ...product.sizes, [size]: stockAvailable - qty };
-        const newTotalQty = Object.values(newSizes).reduce((a, b) => a + b, 0);
-
-        await productModel.findOneAndUpdate(
-          { id: Number(productId) },
-          { sizes: newSizes, quantity: newTotalQty },
+        const newTotalQty = Object.values(newSizes).reduce(
+          (a, b) => a + Number(b),
+          0,
         );
+
+        await productModel.findByIdAndUpdate(productId, {
+          sizes: newSizes,
+          quantity: newTotalQty,
+        });
       }
 
       enrichedOrderItems.push({
@@ -107,14 +109,14 @@ const postOrder = async (req, res) => {
         price: product.price,
         image:
           product.images && product.images.length > 0 ? product.images[0] : "",
-        product: Number(productId),
+        product: productId,
       });
 
       subtotal += product.price * qty;
     }
 
     const shipping = subtotal > 500000 ? 0 : SHIPPING_FEE;
-    const finalPrice = subtotal + shipping;
+    const totalPrice = subtotal + shipping;
 
     // 3. Tạo đơn hàng mới
     const newOrder = await orderModel.create({
@@ -122,21 +124,29 @@ const postOrder = async (req, res) => {
       orderItems: enrichedOrderItems,
       shippingAddress: {
         fullName: shippingAddress.fullName,
-        telephone: Number(shippingAddress.telephone),
+        telephone: shippingAddress.telephone,
         address: shippingAddress.address,
         email: shippingAddress.email || "",
       },
       note: note || "",
       orderTime: orderTime ? new Date(orderTime) : new Date(),
       paymentMethod,
-      totalPrice,
+      totalPrice: totalPrice,
       status: "pending",
+    });
+
+    // Trả về kết quả thành công cho Frontend
+    return res.status(201).json({
+      success: true,
+      message: "Đặt hàng thành công",
+      order: newOrder,
     });
   } catch (error) {
     console.error("postOrder error:", error);
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", detail: error.message });
+    return res.status(500).json({
+      error: "Lỗi hệ thống khi tạo đơn hàng",
+      detail: error.message,
+    });
   }
 };
 

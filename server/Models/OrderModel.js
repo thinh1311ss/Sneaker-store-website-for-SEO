@@ -4,29 +4,32 @@ const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users",
+    required: true,
   },
   orderItems: [
     {
-      name: String,
-      quantity: Number,
-      size: String,
-      price: Number,
-      image: String,
+      name: { type: String, required: true },
+      quantity: { type: Number, required: true },
+      size: { type: String },
+      price: { type: Number, required: true },
+      image: { type: String },
       product: {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Products",
+        required: true,
       },
     },
   ],
   shippingAddress: {
-    fullName: String,
-    address: String,
-    telephone: Number,
+    fullName: { type: String, required: true },
+    address: { type: String, required: true },
+    telephone: { type: String, required: true },
   },
-  note: String,
-  orderTime: Date,
-  paymentMethod: String,
-  totalPrice: Number,
+  note: { type: String },
+  orderTime: { type: Date, default: Date.now },
+  paymentMethod: { type: String, required: true },
+  totalPrice: { type: Number, required: true },
+  status: { type: String, default: "pending" },
 });
 
 const Order = mongoose.model("Order", orderSchema);

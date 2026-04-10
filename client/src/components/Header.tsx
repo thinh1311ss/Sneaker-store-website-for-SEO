@@ -7,6 +7,7 @@ import { getAllBrands, searchProducts } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice, Product } from "@/lib/products";
+import Image from "next/image";
 
 // SVG Icons
 const SearchIcon = () => (
@@ -93,7 +94,7 @@ export default function Header() {
         const data = await getAllBrands();
         setBrands(data);
       } catch (error) {
-        console.error('Error fetching brands:', error);
+        console.error("Error fetching brands:", error);
       }
     }
     fetchBrands();
@@ -109,7 +110,7 @@ export default function Header() {
           setSuggestions(results.slice(0, 5)); // Chỉ lấy 5 gợi ý
           setShowSuggestions(true);
         } catch (error) {
-          console.error('Search error:', error);
+          console.error("Search error:", error);
           setSuggestions([]);
         } finally {
           setIsSearching(false);
@@ -126,12 +127,15 @@ export default function Header() {
   // Click outside to close suggestions
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -145,7 +149,9 @@ export default function Header() {
   };
 
   const handleSuggestionClick = (product: Product) => {
-    router.push(`/collections/${product.brand.toLowerCase().replace(' ', '-')}/products/${product.slug}`);
+    router.push(
+      `/collections/${product.brand.toLowerCase().replace(" ", "-")}/products/${product.slug}`,
+    );
     setSearchInput("");
     setShowSuggestions(false);
     setIsSearchExpanded(false);
@@ -175,7 +181,17 @@ export default function Header() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold">
-            SNEAKER<span className="text-red-500">STORE</span>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/UITSneakers.png"
+                alt="UIT Sneakers Logo"
+                width={125}
+                height={125}
+                priority
+                className="object-contain"
+              />
+              UIT<span className="text-red-500">SNEAKERS</span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -184,10 +200,21 @@ export default function Header() {
               Trang chủ
             </Link>
             <div className="relative group">
-              <Link href="/thuong-hieu" className="hover:text-red-500 transition flex items-center gap-1">
+              <Link
+                href="/thuong-hieu"
+                className="hover:text-red-500 transition flex items-center gap-1"
+              >
                 Thương hiệu
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </Link>
               <div className="absolute top-full left-0 bg-white shadow-lg rounded-lg py-2 min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
@@ -208,7 +235,10 @@ export default function Header() {
                 ))}
               </div>
             </div>
-            <Link href="/collections/uu-dai" className="text-red-500 font-semibold">
+            <Link
+              href="/collections/uu-dai"
+              className="text-red-500 font-semibold"
+            >
               Ưu đãi
             </Link>
             <Link href="/blog" className="hover:text-red-500 transition">
@@ -217,7 +247,10 @@ export default function Header() {
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
+          <div
+            className="hidden md:flex items-center flex-1 max-w-md mx-8"
+            ref={searchRef}
+          >
             <div
               className={`relative flex items-center w-full transition-all duration-300 ${
                 isSearchExpanded
@@ -268,7 +301,11 @@ export default function Header() {
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-b-0"
                     >
                       <img
-                        src={product.image || product.images?.[0] || '/placeholder.png'}
+                        src={
+                          product.image ||
+                          product.images?.[0] ||
+                          "/placeholder.png"
+                        }
                         alt={product.name}
                         className="w-12 h-12 object-cover rounded"
                       />

@@ -10,7 +10,7 @@ import { formatPrice } from "@/lib/products";
 
 interface ShippingAddress {
   fullName: string;
-  phone: string;
+  telephone: string;
   street: string;
   city: string;
   state: string;
@@ -36,7 +36,7 @@ export default function CheckoutPage() {
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: user?.userName || "",
-    phone: "",
+    tphone: "",
     street: "",
     city: "",
     state: "",
@@ -77,7 +77,7 @@ export default function CheckoutPage() {
 
   const validateForm = (): string | null => {
     if (!shippingAddress.fullName.trim()) return "Vui lòng nhập họ tên";
-    if (!shippingAddress.phone.trim()) return "Vui lòng nhập số điện thoại";
+    if (!shippingAddress.telephone.trim()) return "Vui lòng nhập số điện thoại";
     if (!shippingAddress.street.trim()) return "Vui lòng nhập địa chỉ";
     if (!shippingAddress.city.trim()) return "Vui lòng nhập thành phố/quận";
     if (!shippingAddress.state.trim()) return "Vui lòng nhập tỉnh/thành phố";
@@ -106,7 +106,7 @@ export default function CheckoutPage() {
         })),
         shippingAddress: {
           fullName: shippingAddress.fullName,
-          telephone: shippingAddress.phone,
+          telephone: shippingAddress.telephone,
           address:
             `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state} || '' `.trim(),
         },
@@ -303,8 +303,10 @@ export default function CheckoutPage() {
                 </label>
                 <input
                   type="tel"
-                  value={shippingAddress.phone}
-                  onChange={(e) => handleAddressChange("phone", e.target.value)}
+                  value={shippingAddress.telephone}
+                  onChange={(e) =>
+                    handleAddressChange("telephone", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Nhập số điện thoại"
                 />
