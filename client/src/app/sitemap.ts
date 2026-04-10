@@ -1,10 +1,12 @@
 import { MetadataRoute } from 'next';
-import { getAllProducts, getAllBrands } from '@/lib/products';
+import { getAllProducts, getAllBrands } from '@/lib/api';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://sneakerstore.vn';
-  const products = getAllProducts();
-  const brands = getAllBrands();
+  const [products, brands] = await Promise.all([
+    getAllProducts(),
+    getAllBrands(),
+  ]);
 
   // Trang chính
   const staticPages = [
@@ -15,13 +17,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/khuyen-mai`,
+      url: `${baseUrl}/uu-dai`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/lien-he`,
+      url: `${baseUrl}/ho-tro`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.5,
@@ -38,7 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Trang sản phẩm
   const productPages = products.map((product) => ({
-    url: `${baseUrl}/san-pham/${product.slug}`,
+    url: `${baseUrl}/products/${product.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,

@@ -6,7 +6,7 @@ const SHIPPING_FEE = 30000;
 
 const getListOrder = async (req, res) => {
   try {
-    const orders = await orderModel.find();
+    const orders = await orderModel.find().populate("user", "userName email");
     return res.status(200).send(orders);
   } catch (error) {
     console.log("getListOrder error", error);
@@ -85,11 +85,9 @@ const postOrder = async (req, res) => {
       if (size) {
         const stockAvailable = product.sizes ? product.sizes[size] : 0;
         if (stockAvailable < qty) {
-          return res
-            .status(400)
-            .json({
-              error: `Sản phẩm ${product.productName} size ${size} không đủ hàng`,
-            });
+          return res.status(400).json({
+            error: `Sản phẩm ${product.productName} size ${size} không đủ hàng`,
+          });
         }
 
         // Cập nhật tồn kho
@@ -131,13 +129,8 @@ const postOrder = async (req, res) => {
       note: note || "",
       orderTime: orderTime ? new Date(orderTime) : new Date(),
       paymentMethod,
-      totalPrice: finalPrice,
-    });
-
-    return res.status(200).json({
-      message: "Đặt hàng thành công",
-      orderId: newOrder._id,
-      totalPrice: finalPrice,
+      totalPrice,
+      status: "pending",
     });
   } catch (error) {
     console.error("postOrder error:", error);

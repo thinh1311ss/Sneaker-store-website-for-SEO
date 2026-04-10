@@ -3,9 +3,10 @@ const router = express.Router();
 const productController = require("../Controllers/ProductController");
 const authMiddleware = require("../Middleware/AuthMiddleware");
 
-router.get("/product", productController.getListProduct);
-
+// Search route PHẢI đặt TRƯỚC route có :id
 router.get("/product/search", productController.searchProduct);
+
+router.get("/product", productController.getListProduct);
 
 router.post(
   "/product/create",
@@ -25,6 +26,7 @@ router.put(
   productController.updateProduct,
 );
 
+// Route có :id đặt CUỐI CÙNG
 router.get("/product/:id", productController.getProductDetail);
 
 module.exports = router;

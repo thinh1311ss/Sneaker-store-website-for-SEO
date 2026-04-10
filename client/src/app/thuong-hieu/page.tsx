@@ -1,4 +1,4 @@
-import { getAllBrands } from '@/lib/products';
+import { getAllBrands } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -26,8 +26,8 @@ const brandLogoMap: Record<string, string> = {
   'ADIDAS':        '/brands/ADIDAS.webp',
 };
 
-export default function BrandsPage() {
-  const brands = getAllBrands();
+export default async function BrandsPage() {
+  const brands = await getAllBrands();
   const breadcrumbItems = [{ label: 'Thương hiệu' }];
 
   return (

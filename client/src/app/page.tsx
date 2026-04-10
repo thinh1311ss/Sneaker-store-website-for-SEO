@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getAllProducts, getAllBrands } from '@/lib/products';
+import { getAllProducts, getAllBrands, getSaleProducts } from '@/lib/api';
+import { Product } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
 import BrandFilter from '@/components/BrandFilter';
 
@@ -14,22 +15,46 @@ const heroSlides = [
 ];
 
 export default function HomePage() {
-  const allProducts = getAllProducts();
-  const brands = getAllBrands();
-  const featuredProducts = allProducts.filter((p) => p.discount && p.discount >= 20);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const searchParams = useSearchParams();
   const selectedBrands = searchParams.getAll('brand');
 
-  // Filter products by selected brands (if any)
-  const products =
-    selectedBrands.length > 0
-      ? allProducts.filter((p) => selectedBrands.includes(p.brand))
-      : allProducts;
-
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Fetch data từ API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const [allProducts, allBrands, saleProducts] = await Promise.all([
+          getAllProducts(),
+          getAllBrands(),
+          getSaleProducts(),
+        ]);
+        setProducts(allProducts);
+        setBrands(allBrands);
+        setFeaturedProducts(saleProducts.filter(p => (p.discount ?? 0) >= 20));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Filter products by selected brands
+  const filteredProducts =
+    selectedBrands.length > 0
+      ? products.filter((p) => selectedBrands.includes(p.brand))
+      : products;
+
+  // Hero slider animation
   useEffect(() => {
     const timer = setInterval(() => {
       setIsAnimating(true);
@@ -62,14 +87,14 @@ export default function HomePage() {
             <h2 className={`text-5xl md:text-7xl lg:text-8xl font-black ${slide.accent}`}>{slide.highlight}</h2>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Dynamic từ API */}
           <div className="flex gap-8 md:gap-16 mt-12 mb-12">
             <div className="text-center">
-              <p className="text-3xl md:text-4xl font-bold">54+</p>
+              <p className="text-3xl md:text-4xl font-bold">{products.length}+</p>
               <p className="text-sm text-white/60 uppercase">Sản phẩm</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl md:text-4xl font-bold">7</p>
+              <p className="text-3xl md:text-4xl font-bold">{brands.length}</p>
               <p className="text-sm text-white/60 uppercase">Thương hiệu</p>
             </div>
             <div className="text-center">
@@ -108,8 +133,18 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Loading State */}
+      {loading && (
+        <section className="py-20">
+          <div className="container mx-auto px-4 text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-500">Đang tải sản phẩm...</p>
+          </div>
+        </section>
+      )}
+
       {/* Sale Products */}
-      {featuredProducts.length > 0 && (
+      {!loading && featuredProducts.length > 0 && (
         <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -118,8 +153,8 @@ export default function HomePage() {
               <p className="text-gray-600">Tiết kiệm đến 40% cho các sản phẩm hot</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.slice(0, 8).filter((product) => (product.discount ?? 0) >= 40).map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {featuredProducts.slice(0, 8).map((product) => (
+                <ProductCard key={product._id || product.id} product={product} />
               ))}
             </div>
           </div>
@@ -127,21 +162,23 @@ export default function HomePage() {
       )}
 
       {/* All Products */}
-      <section id="products" className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <span className="inline-block px-4 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-semibold mb-4">BỘ SƯU TẬP</span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Tất Cả Sản Phẩm</h2>
-            <p className="text-gray-600">{products.length} sản phẩm sneaker chính hãng</p>
+      {!loading && (
+        <section id="products" className="py-20">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <span className="inline-block px-4 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-semibold mb-4">BỘ SƯU TẬP</span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">Tất Cả Sản Phẩm</h2>
+              <p className="text-gray-600">{filteredProducts.length} sản phẩm sneaker chính hãng</p>
+            </div>
+            <BrandFilter brands={brands} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product._id || product.id} product={product} />
+              ))}
+            </div>
           </div>
-          <BrandFilter brands={brands} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Features */}
       <section className="py-16 bg-gray-900 text-white">

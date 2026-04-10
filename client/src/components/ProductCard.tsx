@@ -13,7 +13,11 @@ interface ProductCardProps {
 export default function ProductCard({ product, collection }: ProductCardProps) {
   const { cartItems, addToCart, removeFromCart } = useCart();
 
-  const inCart = cartItems.some((item) => item.product.id === product.id);
+  // Hỗ trợ cả id và _id từ MongoDB
+  const productId = product._id || String(product.id);
+  const inCart = cartItems.some((item) => 
+    (item.product._id || String(item.product.id)) === productId
+  );
 
   const handleToggleCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -30,19 +34,22 @@ export default function ProductCard({ product, collection }: ProductCardProps) {
     collection || product.brand.toLowerCase().replace(/ /g, "-");
   const productUrl = `/collections/${collectionSlug}/products/${product.slug}`;
 
+  // Hỗ trợ cả image string và images array từ MongoDB
+  const imageUrl = product.image || (product.images && product.images[0]) || '/placeholder.jpg';
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col">
       {/* Image */}
       <Link href={productUrl} className="block flex-shrink-0">
         <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
           <Image
-            src={product.image}
+            src={imageUrl}
             alt={product.name}
             fill
             className="object-contain p-4 group-hover:scale-110 transition-transform duration-500"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
-          {product.discount && (
+          {product.discount && product.discount > 0 && (
             <span className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
               -{product.discount}%
             </span>
@@ -66,7 +73,7 @@ export default function ProductCard({ product, collection }: ProductCardProps) {
             <span className="font-bold text-lg text-gray-900">
               {formatPrice(product.price)}
             </span>
-            {product.originalPrice && (
+            {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-sm text-gray-400 line-through">
                 {formatPrice(product.originalPrice)}
               </span>

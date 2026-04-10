@@ -25,12 +25,18 @@ interface Product {
 interface Order {
   _id: string;
   user: {
+    _id: string;
     userName: string;
     email: string;
-  };
-  totalAmount: number;
+  } | string;
+  totalPrice: number;
   orderTime: string;
   status: string;
+  shippingAddress?: {
+    fullName?: string;
+    street?: string;
+    city?: string;
+  };
 }
 
 interface User {
@@ -716,13 +722,17 @@ export default function AdminDashboard() {
                                 {order._id.slice(-6)}
                               </td>
                               <td className="px-6 py-4 text-gray-900">
-                                {order.user.userName}
+                                {typeof order.user === 'object' && order.user?.userName 
+                                  ? order.user.userName 
+                                  : order.shippingAddress?.fullName || 'N/A'}
                               </td>
                               <td className="px-6 py-4 text-gray-700 text-sm">
-                                {order.user.email}
+                                {typeof order.user === 'object' && order.user?.email 
+                                  ? order.user.email 
+                                  : 'N/A'}
                               </td>
                               <td className="px-6 py-4 font-medium text-red-600">
-                                {formatPrice(order.totalAmount)}
+                                {formatPrice(order.totalPrice || 0)}
                               </td>
                               <td className="px-6 py-4 text-gray-700 text-sm">
                                 {new Date(order.orderTime).toLocaleDateString(

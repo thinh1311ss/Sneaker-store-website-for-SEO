@@ -1,4 +1,4 @@
-import { getAllProducts, getAllBrands } from "@/lib/products";
+import { getAllProducts, getAllBrands } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import ShopFilter from "@/components/ShopFilter";
 import ShopSort from "@/components/ShopSort";
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   else if (collection === "nu") title = "Giày Nữ";
   else if (collection === "uu-dai") title = "Sản Phẩm Ưu Đãi";
   else {
-    const brands = getAllBrands();
+    const brands = await getAllBrands();
     const matchedBrand = brands.find(
       (b) => b.toLowerCase().replace(/ /g, "-") === collection,
     );
@@ -60,10 +60,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const ITEMS_PER_PAGE = 12;
 
-export default function CollectionPage({ params, searchParams }: Props) {
+export default async function CollectionPage({ params, searchParams }: Props) {
   const collection = params.collection.toLowerCase();
-  const allProducts = getAllProducts();
-  const brands = getAllBrands();
+  const [allProducts, brands] = await Promise.all([
+    getAllProducts(),
+    getAllBrands(),
+  ]);
 
   let filteredProducts = [...allProducts];
   let collectionTitle = "Bộ sưu tập";
@@ -87,7 +89,7 @@ export default function CollectionPage({ params, searchParams }: Props) {
       "Săn ngay những đôi giày sneaker chính hãng với mức giá cực kỳ hấp dẫn. Số lượng có hạn!";
     filteredProducts = filteredProducts.filter((p) => p.discount !== null);
   } else if (collection === "all") {
-    isBrandPage = true;
+    isBrandPage = false;
     collectionTitle = "Tất cả sản phẩm";
     collectionDescription =
       "Khám phá toàn bộ bộ sưu tập giày sneaker chính hãng với đa dạng mẫu mã, phong cách và mức giá phù hợp với mọi đối tượng khách hàng.";
@@ -110,7 +112,7 @@ export default function CollectionPage({ params, searchParams }: Props) {
   // Extract all unique sizes for the filter based on CURRENT collection products
   const allSizes = Array.from(
     new Set(
-      filteredProducts.flatMap((p) => (p.sizes ? p.sizes.split("\n") : [])),
+      filteredProducts.flatMap((p) => (p.sizes ? p.sizes.split(", ") : [])),
     ),
   ).sort();
 
@@ -132,7 +134,7 @@ export default function CollectionPage({ params, searchParams }: Props) {
     filteredProducts = filteredProducts.filter(
       (p) =>
         p.sizes &&
-        sizesToFilter.some((size) => p.sizes.split("\n").includes(size)),
+        sizesToFilter.some((size) => p.sizes.split(", ").includes(size)),
     );
   }
 

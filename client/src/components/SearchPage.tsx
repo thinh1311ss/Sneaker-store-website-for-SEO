@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
-import { Product, formatPrice } from "@/lib/products";
+import { Product } from "@/lib/products";
 import Link from "next/link";
+import ShopFilter from "@/components/ShopFilter";
+import ShopSort from "@/components/ShopSort";
+import Breadcrumb from "@/components/Breadcrumb";
 
 interface BackendProduct {
   _id: string;
@@ -16,64 +19,32 @@ interface BackendProduct {
   description: string;
   quantity: number;
   images: string[];
-}
-
-interface PriceRange {
-  min: number;
-  max: number;
-  label: string;
+  discountPercent?: number;
+  originalPrice?: number | null;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const PRICE_RANGES: PriceRange[] = [
-  { min: 0, max: 2000000, label: "Dưới 2 triệu" },
-  { min: 2000000, max: 4000000, label: "2 - 4 triệu" },
-  { min: 4000000, max: 6000000, label: "4 - 6 triệu" },
-  { min: 6000000, max: 10000000, label: "6 - 10 triệu" },
-  { min: 10000000, max: Infinity, label: "Trên 10 triệu" },
-];
-
-const AVAILABLE_SIZES = [
-  "US6",
-  "US6_5",
-  "US7",
-  "US7_5",
-  "US8",
-  "US8_5",
-  "US9",
-  "US9_5",
-  "US10",
-  "US10_5",
-];
-
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = searchParams.get("q") || "";
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const query = searchParams.get("q") || "";
+  const selectedSizes = searchParams.getAll("size");
+  const selectedDiscounts = searchParams.getAll("discount");
+  const currentSort = searchParams.get("sort") || "newest";
+
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter states
-  const [selectedPrices, setSelectedPrices] = useState<Set<string>>(new Set());
-  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
-  // Fetch products from search API
+  // Fetch products khi query thay đổi
   useEffect(() => {
     if (!query.trim()) {
-      setProducts([]);
-      setFilteredProducts([]);
+      setAllProducts([]);
       return;
     }
-
     fetchProducts();
   }, [query]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [products, selectedPrices, selectedSizes]);
 
   const fetchProducts = async () => {
     try {
@@ -83,184 +54,122 @@ export default function SearchPage() {
       const searchUrl = new URL(`${API_BASE_URL}/api/product/search`);
       searchUrl.searchParams.append("q", query);
 
-      console.log("Fetching from:", searchUrl.toString());
-
       const response = await fetch(searchUrl.toString(), {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      console.log("Response status:", response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("API Error:", response.status, errorText);
         throw new Error(`Lỗi API: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("API Response:", data);
-
-      if (!data.success) {
-        throw new Error(data.error || "API trả về lỗi");
-      }
+      if (!data.success) throw new Error(data.error || "API trả về lỗi");
 
       const transformed = transformProducts(data.data || []);
-      setProducts(transformed);
-      setSelectedPrices(new Set()); // Reset filters
-      setSelectedSizes(new Set());
+      setAllProducts(transformed);
     } catch (err) {
-      console.error("Search error:", err);
       let errorMessage = "Lỗi khi tìm kiếm sản phẩm";
-
       if (err instanceof TypeError && err.message.includes("fetch")) {
-        errorMessage =
-          "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.";
+        errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.";
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-
       setError(errorMessage);
-      setProducts([]);
+      setAllProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
   const transformProducts = (backendProducts: BackendProduct[]): Product[] => {
-    return backendProducts.map((p) => ({
-      id: p._id as unknown as number,
+    return backendProducts.map((p, index) => ({
+      id: index + 1,
+      _id: p._id,
       name: p.productName,
       brand: p.brand,
       price: p.price,
+      originalPrice: p.originalPrice || null,
+      discount: p.discountPercent || null,
       image: p.images?.[0] || "/placeholder.png",
+      images: p.images || [],
       slug: p.productName
         .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^\w-]/g, ""),
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[đĐ]/g, "d")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-"),
       category: p.category,
       description: p.description,
       sizes: Object.keys(p.sizes || {})
         .filter((size) => p.sizes[size] > 0)
-        .map((size) => size.replace("_", "."))
+        .map((size) => size.replace("_", ".").replace("US", "US "))
         .join(", "),
-      originalPrice: null,
-      discount: null,
+      sizesObj: p.sizes,
+      quantity: p.quantity,
       specs: "",
       careGuide: "",
       storageGuide: "",
     }));
   };
 
-  const applyFilters = () => {
-    let result = [...products];
+  // Apply filters & sort trên client
+  const filteredProducts = (() => {
+    let result = [...allProducts];
 
-    // Price filter
-    if (selectedPrices.size > 0) {
-      result = result.filter((product) => {
-        return Array.from(selectedPrices).some((priceKey) => {
-          const range = PRICE_RANGES[parseInt(priceKey)];
-          return product.price >= range.min && product.price <= range.max;
+    // Size filter
+    if (selectedSizes.length > 0) {
+      result = result.filter((p) => {
+        if (!p.sizes) return false;
+        const productSizes = p.sizes.split(", ");
+        return selectedSizes.some((size) => productSizes.includes(size));
+      });
+    }
+
+    // Discount filter
+    if (selectedDiscounts.length > 0) {
+      result = result.filter((p) => {
+        if (!p.discount) return false;
+        return selectedDiscounts.some((range) => {
+          const [min, max] = range.split("-").map(Number);
+          return p.discount! >= min && p.discount! <= max;
         });
       });
     }
 
-    // Size filter
-    if (selectedSizes.size > 0) {
-      result = result.filter((product) => {
-        if (!product.sizes) return false;
-        const productSizes = product.sizes
-          .split(", ")
-          .map((s) => s.replace(".", "_"));
-        return Array.from(selectedSizes).some((size) =>
-          productSizes.some((ps) => ps.includes(size)),
-        );
-      });
+    // Sort
+    if (currentSort === "price-asc") {
+      result.sort((a, b) => a.price - b.price);
+    } else if (currentSort === "price-desc") {
+      result.sort((a, b) => b.price - a.price);
+    } else if (currentSort === "name-asc") {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (currentSort === "name-desc") {
+      result.sort((a, b) => b.name.localeCompare(a.name));
     }
 
-    setFilteredProducts(result);
-  };
-
-  const togglePriceFilter = (index: number) => {
-    const key = index.toString();
-    const newPrices = new Set(selectedPrices);
-    if (newPrices.has(key)) {
-      newPrices.delete(key);
-    } else {
-      newPrices.add(key);
-    }
-    setSelectedPrices(newPrices);
-  };
-
-  const toggleSizeFilter = (size: string) => {
-    const newSizes = new Set(selectedSizes);
-    if (newSizes.has(size)) {
-      newSizes.delete(size);
-    } else {
-      newSizes.add(size);
-    }
-    setSelectedSizes(newSizes);
-  };
-
-  // UI Components
-  const FilterCheckbox = ({
-    id,
-    label,
-    checked,
-    onChange,
-  }: {
-    id: string;
-    label: string;
-    checked: boolean;
-    onChange: () => void;
-  }) => (
-    <label className="flex items-center gap-2 cursor-pointer hover:text-red-600 transition">
-      <input
-        type="checkbox"
-        id={id}
-        checked={checked}
-        onChange={onChange}
-        className="w-4 h-4 rounded border-gray-300 cursor-pointer accent-red-500"
-      />
-      <span className="text-sm text-gray-700">{label}</span>
-    </label>
-  );
+    return result;
+  })();
 
   return (
     <div className="container mx-auto px-4 py-12">
-      {/* Breadcrumb */}
-      <nav className="mb-8">
-        <ol className="flex items-center gap-2 text-sm">
-          <li>
-            <Link
-              href="/"
-              className="text-gray-500 hover:text-red-500 transition"
-            >
-              Trang chủ
-            </Link>
-          </li>
-          <li className="text-gray-300">/</li>
-          <li className="text-gray-900 font-medium">
-            Tìm kiếm: &quot;{query}&quot;
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumb items={[{ label: `Tìm kiếm: "${query}"` }]} />
 
-      <h1 className="text-3xl md:text-4xl font-bold mb-2">Kết quả tìm kiếm</h1>
-      <p className="text-gray-600 mb-8">
-        "{query}"
-        {filteredProducts.length > 0 && (
-          <span className="text-red-600 font-medium">
-            {" "}
-            ({filteredProducts.length} sản phẩm)
-          </span>
-        )}
-      </p>
+      <div className="bg-white rounded-2xl p-8 mb-8 shadow-sm border border-gray-100 text-center">
+            <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+              Kết quả tìm kiếm cho &quot;{query}&quot;
+            </h1>
+            <p className="text-lg text-gray-500 max-w-3xl mx-auto">
+              Nếu vẫn chưa tìm thấy sản phẩm ưng ý! 
+            </p>
+            <p className="text-lg text-gray-500 max-w-3xl mx-auto">
+              Hãy thử <Link href="/ho-tro#lien-he" className="text-red-600 hover:underline">liên hệ với chúng tôi</Link> để được tư vấn và hỗ trợ ngay nhé.
+            </p>
+       </div>
 
       {loading ? (
-        // Loading state
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
@@ -268,7 +177,6 @@ export default function SearchPage() {
           </div>
         </div>
       ) : error ? (
-        // Error state
         <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">Lỗi</h2>
           <p className="text-red-700 mb-4">{error}</p>
@@ -279,8 +187,7 @@ export default function SearchPage() {
             Quay lại trang chủ
           </Link>
         </div>
-      ) : filteredProducts.length === 0 ? (
-        // Empty state
+      ) : allProducts.length === 0 ? (
         <div className="text-center py-20">
           <svg
             className="w-24 h-24 mx-auto text-gray-300 mb-4"
@@ -301,90 +208,75 @@ export default function SearchPage() {
           <p className="text-gray-600 mb-8">
             Không có sản phẩm nào phù hợp với &quot;{query}&quot;
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/"
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-            >
-              Tiếp tục mua sắm
-            </Link>
-            <button
-              onClick={() => {
-                setSelectedPrices(new Set());
-                setSelectedSizes(new Set());
-              }}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:border-red-600 transition font-medium"
-            >
-              Xóa bộ lọc
-            </button>
-          </div>
+          <Link
+            href="/"
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+          >
+            Tiếp tục mua sắm
+          </Link>
         </div>
       ) : (
-        // Content
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar Filters */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl p-6 sticky top-24 h-fit shadow-sm">
-              <h2 className="text-lg font-bold mb-6">Bộ lọc</h2>
-
-              {/* Price Filter */}
-              <div className="mb-6 pb-6 border-b">
-                <h3 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">
-                  Khoảng giá
-                </h3>
-                <div className="space-y-3">
-                  {PRICE_RANGES.map((range, index) => (
-                    <FilterCheckbox
-                      key={index}
-                      id={`price-${index}`}
-                      label={range.label}
-                      checked={selectedPrices.has(index.toString())}
-                      onChange={() => togglePriceFilter(index)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Size Filter */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">
-                  Size
-                </h3>
-                <div className="space-y-3">
-                  {AVAILABLE_SIZES.map((size) => (
-                    <FilterCheckbox
-                      key={size}
-                      id={`size-${size}`}
-                      label={size.replace("_", ".")}
-                      checked={selectedSizes.has(size)}
-                      onChange={() => toggleSizeFilter(size)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Clear Filters */}
-              {(selectedPrices.size > 0 || selectedSizes.size > 0) && (
-                <button
-                  onClick={() => {
-                    setSelectedPrices(new Set());
-                    setSelectedSizes(new Set());
-                  }}
-                  className="w-full py-2 border border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition font-medium text-sm"
-                >
-                  Xóa bộ lọc
-                </button>
-              )}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Filter */}
+          <div className="lg:w-1/4 flex-shrink-0">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+              <ShopFilter
+                brands={[]}
+                hideBrandFilter={true}
+              />
             </div>
           </div>
 
-          {/* Products Grid */}
-          <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          {/* Product Grid */}
+          <div className="lg:w-3/4">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-gray-600 text-sm">
+                Hiển thị{" "}
+                <span className="font-bold text-gray-900">
+                  {filteredProducts.length}
+                </span>{" "}
+                sản phẩm
+              </p>
+              <ShopSort />
             </div>
+
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="w-10 h-10 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  Không có sản phẩm phù hợp
+                </h2>
+                <p className="text-gray-500 mb-4">
+                  Thử bỏ bớt bộ lọc để xem thêm sản phẩm.
+                </p>
+                <Link
+                  href={`?q=${query}`}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition font-medium text-sm"
+                >
+                  Xóa bộ lọc
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

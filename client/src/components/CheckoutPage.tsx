@@ -98,19 +98,21 @@ export default function CheckoutPage() {
       const orderData = {
         user: user?._id, // Gửi ObjectId của User
         orderItems: cartItems.map((item) => ({
-          product: Number(item.product.id), // Đảm bảo gửi kiểu Number (ví dụ: 9)
-          size: item.size,
+          product: item.product._id || item.product.id, // Dùng _id từ MongoDB
+          size: item.size
+            ? item.size.replace("US ", "US").replace(".", "_")
+            : undefined, // Convert "US 6.5" -> "US6_5"
           quantity: item.quantity,
         })),
         shippingAddress: {
           fullName: shippingAddress.fullName,
-          telephone: shippingAddress.phone, // Controller sẽ ép kiểu Number sau
-          address: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}`,
-          email: user?.email || "",
+          telephone: shippingAddress.phone,
+          address:
+            `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state} || '' `.trim(),
         },
         note: note.trim(),
         orderTime: new Date().toISOString(),
-        paymentMethod: selectedPayment === "cod" ? "COD" : "Transfer",
+        paymentMethod: selectedPayment === "cod" ? "COD" : "BANK_TRANSFER",
         totalPrice: total,
       };
 
@@ -123,7 +125,8 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData),
       });
 
-      const data = await response.json();
+      // Backend trả về text "create order successfully" không phải JSON
+      const responseText = await response.text();
 
       if (response.ok) {
         setSuccess(true);
@@ -132,7 +135,17 @@ export default function CheckoutPage() {
           router.push("/orders");
         }, 2000);
       } else {
-        setError(data.error || "Có lỗi xảy ra khi đặt hàng.");
+        // Error - try parse JSON error
+        try {
+          const errorData = JSON.parse(responseText);
+          setError(
+            errorData.error || "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.",
+          );
+        } catch {
+          setError(
+            responseText || "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.",
+          );
+        }
       }
     } catch (err) {
       console.error("Order submission error:", err);

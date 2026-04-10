@@ -23,12 +23,11 @@ interface Order {
   totalPrice: number;
   orderTime: string;
   paymentMethod: string;
-  shippingAddress: {
-    fullName: string;
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
+  status?: string;
+  shippingAddress?: {
+    fullName?: string;
+    address?: string;
+    telephone?: number;
   };
   note: string;
 }
@@ -73,10 +72,8 @@ export default function OrdersPage() {
         return;
       }
 
-      console.log("Fetching orders for user:", user._id);
-
       const response = await fetch(
-        `${API_BASE_URL}/api/order/user/${user._id}/orders`,
+        `${API_BASE_URL}/api/auth/user/${user._id}/orders`,
         {
           method: "GET",
           headers: {
@@ -86,11 +83,8 @@ export default function OrdersPage() {
         },
       );
 
-      console.log("Orders API response status:", response.status);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Orders API error:", errorData);
         throw new Error(
           errorData.message ||
             errorData.error ||
@@ -99,7 +93,6 @@ export default function OrdersPage() {
       }
 
       const data: Order[] = await response.json();
-      console.log("Orders data received:", data);
       const sortedOrders = data.sort(
         (a, b) =>
           new Date(b.orderTime).getTime() - new Date(a.orderTime).getTime(),
@@ -113,6 +106,17 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStatusLabel = (status?: string) => {
+    const map: Record<string, { label: string; color: string }> = {
+      pending:   { label: "Chờ xác nhận", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+      confirmed: { label: "Đã xác nhận",  color: "text-blue-600 bg-blue-50 border-blue-200" },
+      shipping:  { label: "Đang giao",    color: "text-purple-600 bg-purple-50 border-purple-200" },
+      delivered: { label: "Đã giao",      color: "text-green-600 bg-green-50 border-green-200" },
+      cancelled: { label: "Đã huỷ",       color: "text-red-600 bg-red-50 border-red-200" },
+    };
+    return map[status ?? "pending"] ?? map["pending"];
   };
 
   if (loading) {
@@ -134,19 +138,13 @@ export default function OrdersPage() {
       <nav className="mb-8">
         <ol className="flex items-center gap-2 text-sm">
           <li>
-            <Link
-              href="/"
-              className="text-gray-500 hover:text-red-500 transition"
-            >
+            <Link href="/" className="text-gray-500 hover:text-red-500 transition">
               Trang chủ
             </Link>
           </li>
           <li className="text-gray-300">/</li>
           <li>
-            <Link
-              href="/profile"
-              className="text-gray-500 hover:text-red-500 transition"
-            >
+            <Link href="/profile" className="text-gray-500 hover:text-red-500 transition">
               Tài khoản
             </Link>
           </li>
@@ -202,124 +200,131 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order) => (
-            <div
-              key={order._id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition"
-            >
-              {/* Order Header */}
-              <div className="bg-gray-50 px-6 py-4 border-b flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Mã đơn hàng</p>
-                  <p className="font-bold text-lg text-gray-900">
-                    #{order._id.substring(0, 8).toUpperCase()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Ngày đặt</p>
-                  <p className="font-medium text-gray-900">
-                    {new Date(order.orderTime).toLocaleDateString("vi-VN", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Order Items */}
-              <div className="px-6 py-4 border-b">
-                <h3 className="font-semibold text-gray-900 mb-4">
-                  Sản phẩm ({order.orderItems.length})
-                </h3>
-                <div className="space-y-3">
-                  {order.orderItems.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex gap-4 pb-3 border-b last:border-b-0"
-                    >
-                      <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                        {item.product?.images?.[0] && (
-                          <img
-                            src={item.product.images[0]}
-                            alt={item.product?.productName}
-                            className="w-full h-full object-contain p-2"
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
-                          {item.product?.productName || "Sản phẩm"}
-                        </p>
-                        <div className="flex items-center gap-4 mt-1">
-                          {item.size && (
-                            <span className="text-sm text-gray-600">
-                              Size: {item.size}
-                            </span>
-                          )}
-                          <span className="text-sm text-gray-600">
-                            Số lượng: {item.quantity}
-                          </span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {formatPrice(
-                              (item.product?.price || 0) * item.quantity,
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Order Summary */}
-              <div className="px-6 py-4 border-b">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Địa chỉ giao hàng
-                </h3>
-                <p className="text-gray-700">
-                  {order.shippingAddress.fullName}
-                </p>
-                <p className="text-gray-700">
-                  {order.shippingAddress.street}, {order.shippingAddress.city}
-                </p>
-                <p className="text-gray-700">
-                  {order.shippingAddress.state} {order.shippingAddress.zipCode}
-                </p>
-                {order.note && (
-                  <div className="mt-3 pt-3 border-t">
-                    <p className="text-sm text-gray-600">
-                      Ghi chú: {order.note}
+          {orders.map((order) => {
+            const statusInfo = getStatusLabel(order.status);
+            return (
+              <div
+                key={order._id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition"
+              >
+                {/* Order Header */}
+                <div className="bg-gray-50 px-6 py-4 border-b flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Mã đơn hàng</p>
+                    <p className="font-bold text-lg text-gray-900">
+                      #{order._id.substring(0, 8).toUpperCase()}
                     </p>
                   </div>
-                )}
-              </div>
-
-              {/* Order Total */}
-              <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">
-                    Tổng tiền:{" "}
-                    <span className="font-semibold text-gray-900">
-                      {formatPrice(order.totalPrice)}
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Thanh toán:{" "}
-                    <span className="font-medium text-gray-900">
-                      {order.paymentMethod}
-                    </span>
-                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex justify-end items-center gap-2">
+                      <p className="font-medium text-gray-900">
+                        {new Date(order.orderTime).toLocaleDateString("vi-VN", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <Link
-                  href={`/orders/${order._id}`}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-                >
-                  Chi tiết
-                </Link>
+
+                {/* Order Items */}
+                <div className="px-6 py-4 border-b">
+                  <h3 className="font-semibold text-gray-900 mb-4">
+                    Sản phẩm ({order.orderItems.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {order.orderItems.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex gap-4 pb-3 border-b last:border-b-0"
+                      >
+                        <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0">
+                          {item.product?.images?.[0] && (
+                            <img
+                              src={item.product.images[0]}
+                              alt={item.product?.productName}
+                              className="w-full h-full object-contain p-2"
+                            />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            {item.product?.productName || "Sản phẩm"}
+                          </p>
+                          <div className="flex items-center gap-4 mt-1">
+                            {item.size && (
+                              <span className="text-sm text-gray-600">
+                                Size: {item.size}
+                              </span>
+                            )}
+                            <span className="text-sm text-gray-600">
+                              Số lượng: {item.quantity}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {formatPrice(
+                                (item.product?.price || 0) * item.quantity,
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Shipping Address - dùng đúng field từ DB */}
+                <div className="px-6 py-4 border-b">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Địa chỉ giao hàng
+                  </h3>
+                  {order.shippingAddress ? (
+                    <>
+                      {order.shippingAddress.fullName && (
+                        <p className="text-gray-700">{order.shippingAddress.fullName}</p>
+                      )}
+                      {order.shippingAddress.address && (
+                        <p className="text-gray-700">{order.shippingAddress.address}</p>
+                      )}
+                      {order.shippingAddress.telephone && (
+                        <p className="text-gray-700">
+                          SĐT: {order.shippingAddress.telephone}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Không có thông tin địa chỉ</p>
+                  )}
+                  {order.note && (
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-medium text-gray-600">
+                        <b>Ghi chú:</b> {order.note}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Order Total */}
+                <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                       <b>Tổng tiền:</b>{" "}
+                       <span className="font-semibold text-gray-900">
+                        {formatPrice(order.totalPrice)}
+                       </span>{" "}
+                        -{" "}
+                       <span className="font-medium text-gray-900">
+                        {order.paymentMethod}
+                       </span>
+                    </p>
+                  </div>
+                  <span className={`text-sm font-medium px-3 py-1 rounded-full border ${statusInfo.color}`}>
+                      {statusInfo.label}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

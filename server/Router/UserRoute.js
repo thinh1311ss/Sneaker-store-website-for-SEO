@@ -5,7 +5,7 @@ const authMiddleware = require("../Middleware/AuthMiddleware");
 
 // Get current logged in user (must be before /:id route)
 router.get(
-  "/user/me",
+  "/me",
   [authMiddleware.isAuthentication],
   userController.getCurrentUser,
 );
@@ -23,7 +23,7 @@ router.post(
 );
 
 router.put(
-  "/user/profile",
+  "/profile",
   [authMiddleware.isAuthentication],
   userController.updateUserProfile,
 );

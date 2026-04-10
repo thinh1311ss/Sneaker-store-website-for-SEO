@@ -32,10 +32,13 @@ interface Order {
   totalPrice: number;
   orderTime: string;
   paymentMethod: string;
-  shippingAddress: {
-    street: string;
-    city: string;
+  status?: string;
+  shippingAddress?: {
+    fullName?: string;
+    address?: string;
+    telephone?: number;
   };
+  note: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -138,7 +141,7 @@ export default function ProfilePage() {
 
       // Get user orders
       const ordersRes = await fetch(
-        `${API_BASE_URL}/api/order/user/${userData._id}/orders`,
+        `${API_BASE_URL}/api/auth/user/${userData._id}/orders`,
         {
           method: "GET",
           headers: {
@@ -370,7 +373,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="text-sm text-gray-600">Số điện thoại</label>
                   <p className="text-lg font-medium text-gray-900">
-                    {userInfo.telephone || "Chưa cập nhật"}
+                    +84{userInfo.telephone || "Chưa cập nhật"}
                   </p>
                 </div>
 
@@ -570,7 +573,7 @@ export default function ProfilePage() {
                       >
                         <td className="px-4 py-3">
                           <Link
-                            href={`/orders/${order._id}`}
+                            href={`/orders`}
                             className="text-red-600 hover:text-red-700 font-medium"
                           >
                             {order._id.substring(0, 8).toUpperCase()}
@@ -582,14 +585,14 @@ export default function ProfilePage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
-                          {order.shippingAddress.city}
+                          {order.shippingAddress?.address || "—"}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold text-gray-900">
                           {formatPrice(order.totalPrice)}
                         </td>
                         <td className="px-4 py-3">
                           <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                            {order.paymentMethod}
+                            {order.status}
                           </span>
                         </td>
                       </tr>
