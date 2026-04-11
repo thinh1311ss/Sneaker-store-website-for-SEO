@@ -1,5 +1,10 @@
-node_modules/
-.next/
-*.node
-.env
-.env.local
+client/node_modules/
+server/node_modules/
+
+client/.next/
+
+client/.env.local
+server/.env
+
+.DS_Store
+Thumbs.db
