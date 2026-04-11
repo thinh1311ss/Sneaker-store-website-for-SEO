@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, Suspense } from 'react';
 
 interface ShopFilterProps {
   brands: string[];
@@ -61,7 +61,7 @@ function AccordionSection({ title, children, defaultOpen = true }: AccordionSect
   );
 }
 
-export default function ShopFilter({
+function ShopFilterInner({
   brands,
   currentBrand = null,
   availableSizes = [],
@@ -169,5 +169,13 @@ export default function ShopFilter({
         </div>
       </AccordionSection>
     </div>
+  );
+}
+
+export default function ShopFilter(props: ShopFilterProps) {
+  return (
+    <Suspense fallback={null}>
+      <ShopFilterInner {...props} />
+    </Suspense>
   );
 }

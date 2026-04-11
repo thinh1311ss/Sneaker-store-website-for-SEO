@@ -8,6 +8,7 @@ import Link from "next/link";
 import ShopFilter from "@/components/ShopFilter";
 import ShopSort from "@/components/ShopSort";
 import Breadcrumb from "@/components/Breadcrumb";
+import { Suspense } from "react";
 
 interface BackendProduct {
   _id: string;
@@ -25,7 +26,7 @@ interface BackendProduct {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-export default function SearchPage() {
+function SearchPageInner() {
   const searchParams = useSearchParams();
 
   const query = searchParams.get("q") || "";
@@ -283,5 +284,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchPageInner />
+    </Suspense>
   );
 }

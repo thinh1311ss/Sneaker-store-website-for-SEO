@@ -2,12 +2,13 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback } from 'react';
+import { Suspense } from 'react';
 
 interface BrandFilterProps {
   brands: string[];
 }
 
-export default function BrandFilter({ brands }: BrandFilterProps) {
+function BrandFilterInner({ brands }: BrandFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,5 +68,13 @@ export default function BrandFilter({ brands }: BrandFilterProps) {
         </button>
       ))}
     </div>
+  );
+}
+
+export default function BrandFilter({ brands }: BrandFilterProps) {
+  return (
+    <Suspense fallback={null}>
+      <BrandFilterInner brands={brands} />
+    </Suspense>
   );
 }

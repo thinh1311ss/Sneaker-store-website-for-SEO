@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, Suspense } from 'react';
 
-export default function ShopSort() {
+function ShopSortInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -47,5 +47,13 @@ export default function ShopSort() {
         <option value="name-desc">Tên: Z-A</option>
       </select>
     </div>
+  );
+}
+
+export default function ShopSort() {
+  return (
+    <Suspense fallback={null}>
+      <ShopSortInner />
+    </Suspense>
   );
 }

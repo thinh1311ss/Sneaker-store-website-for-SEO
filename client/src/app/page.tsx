@@ -7,6 +7,7 @@ import { getAllProducts, getAllBrands, getSaleProducts } from '@/lib/api';
 import { Product } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import BrandFilter from '@/components/BrandFilter';
+import { Suspense } from 'react';
 
 const heroSlides = [
   { title: 'SNEAKER', highlight: 'CHÍNH HÃNG', subtitle: 'Bộ sưu tập mới nhất 2024', bg: 'from-black via-gray-900 to-gray-800', accent: 'text-red-500' },
@@ -14,7 +15,7 @@ const heroSlides = [
   { title: 'FREESHIP', highlight: 'TOÀN QUỐC', subtitle: 'Đơn hàng từ 2.000.000đ', bg: 'from-emerald-600 via-emerald-700 to-emerald-900', accent: 'text-white' },
 ];
 
-export default function HomePage() {
+function HomePageInner() {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -231,5 +232,13 @@ export default function HomePage() {
         </div>
       </section>
     </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePageInner />
+    </Suspense>
   );
 }
