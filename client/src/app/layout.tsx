@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     default: `${siteConfig.name} - Giày Sneaker Chính Hãng`,
     template: `%s | ${siteConfig.name}`,
   },
+  icons: {
+    icon: "/Logo_UITSneaker.png",
+  },
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   authors: siteConfig.authors,

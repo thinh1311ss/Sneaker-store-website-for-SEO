@@ -17,8 +17,8 @@ export const siteConfig = {
     "giày sneaker nữ",
     "mua giày sneaker online",
   ],
-  authors: [{ name: "Sneaker Store Vietnam" }],
-  creator: "Sneaker Store Vietnam",
+  authors: [{ name: "UIT Sneakers Vietnam" }],
+  creator: "UIT Sneakers Vietnam",
 };
 
 export function generateProductSchema(product: {
