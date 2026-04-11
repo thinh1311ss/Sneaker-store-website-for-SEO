@@ -14,7 +14,12 @@ const blogRoute = require("./Router/BlogRoute");
 require("dotenv").config();
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: [
+    "http://localhost:3000", 
+    "http://localhost:3001",
+    "https://sneaker-store-website-for-seo-seven.vercel.app",
+    "https://sneaker-store-website-for-seo-git-main-thinh1311ss-projects.vercel.app"
+  ],
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
