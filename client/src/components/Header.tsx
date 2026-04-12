@@ -183,7 +183,7 @@ export default function Header() {
           <Link href="/" className="text-2xl font-bold">
             <div className="flex items-center gap-2 object-contain">
               <Image
-                src="/logo_UITSneaker_v2.png"
+                src="/Logo_UITSneaker_v2.png"
                 alt="UIT Sneakers Logo"
                 width={125}
                 height={125}
@@ -473,7 +473,7 @@ export default function Header() {
                   {brands.map((brand) => (
                     <Link
                       key={brand}
-                      href={`/thuong-hieu/${brand.toLowerCase().replace(" ", "-")}`}
+                      href={`/collections/${brand.toLowerCase().replace(" ", "-")}`}
                       className="text-gray-600 hover:text-red-500"
                     >
                       {brand}
@@ -481,11 +481,11 @@ export default function Header() {
                   ))}
                 </div>
               </div>
-              <Link href="/khuyen-mai" className="text-red-500 font-semibold">
+              <Link href="/uu-dai" className="text-red-500 font-semibold">
                 Khuyến mãi
               </Link>
-              <Link href="/lien-he" className="hover:text-red-500 transition">
-                Liên hệ
+              <Link href="/Blog" className="hover:text-red-500 transition">
+                Blog
               </Link>
 
               {/* Mobile User Account */}
