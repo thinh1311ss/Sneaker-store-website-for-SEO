@@ -11,71 +11,38 @@ import Image from "next/image";
 
 // SVG Icons
 const SearchIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
 
 const CartIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-    />
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
   </svg>
 );
 
 const MenuIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 6h16M4 12h16M4 18h16"
-    />
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
   </svg>
 );
 
 const CloseIcon = () => (
-  <svg
-    className="w-6 h-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
-    />
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+const ChevronDownIcon = ({ className }: { className?: string }) => (
+  <svg className={`w-4 h-4 ${className ?? ""}`} fill="currentColor" viewBox="0 0 20 20">
+    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
   </svg>
 );
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isBrandOpen, setIsBrandOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [brands, setBrands] = useState<string[]>([]);
@@ -86,6 +53,12 @@ export default function Header() {
   const router = useRouter();
   const { cartCount } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
+
+  // Đóng toàn bộ mobile menu
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+    setIsBrandOpen(false);
+  };
 
   // Fetch brands từ API
   useEffect(() => {
@@ -107,7 +80,7 @@ export default function Header() {
         setIsSearching(true);
         try {
           const results = await searchProducts(searchInput);
-          setSuggestions(results.slice(0, 5)); // Chỉ lấy 5 gợi ý
+          setSuggestions(results.slice(0, 5));
           setShowSuggestions(true);
         } catch (error) {
           console.error("Search error:", error);
@@ -119,18 +92,15 @@ export default function Header() {
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    }, 300); // Debounce 300ms
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Click outside to close suggestions
+  // Click outside để đóng suggestions
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
       }
     }
@@ -145,6 +115,7 @@ export default function Header() {
       setSearchInput("");
       setIsSearchExpanded(false);
       setShowSuggestions(false);
+      closeMenu(); // tự đóng mobile menu sau khi tìm kiếm
     }
   };
 
@@ -155,6 +126,7 @@ export default function Header() {
     setSearchInput("");
     setShowSuggestions(false);
     setIsSearchExpanded(false);
+    closeMenu();
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
@@ -180,8 +152,8 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold">
-            <div className="flex items-center gap-2 object-contain">
+          <Link href="/" className="text-2xl font-bold flex-shrink-0">
+            <div className="flex items-center gap-2">
               <Image
                 src="/Logo_UITSneaker_v2.png"
                 alt="UIT Sneakers Logo"
@@ -189,9 +161,8 @@ export default function Header() {
                 height={125}
                 priority
                 className="object-contain"
-                style={{ height: '66px' }} 
+                style={{ height: "66px" }}
               />
-              {/* UIT<span className="text-red-500">SNEAKERS</span> */}
             </div>
           </Link>
 
@@ -206,17 +177,7 @@ export default function Header() {
                 className="hover:text-red-500 transition flex items-center gap-1"
               >
                 Thương hiệu
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <ChevronDownIcon />
               </Link>
               <div className="absolute top-full left-0 bg-white shadow-lg rounded-lg py-2 min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                 <Link
@@ -236,10 +197,7 @@ export default function Header() {
                 ))}
               </div>
             </div>
-            <Link
-              href="/collections/uu-dai"
-              className="text-red-500 font-semibold"
-            >
+            <Link href="/collections/uu-dai" className="text-red-500 font-semibold">
               Ưu đãi
             </Link>
             <Link href="/blog" className="hover:text-red-500 transition">
@@ -247,11 +205,8 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Search Bar */}
-          <div
-            className="hidden md:flex items-center flex-1 max-w-md mx-8"
-            ref={searchRef}
-          >
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
             <div
               className={`relative flex items-center w-full transition-all duration-300 ${
                 isSearchExpanded
@@ -302,18 +257,12 @@ export default function Header() {
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-b-0"
                     >
                       <img
-                        src={
-                          product.image ||
-                          product.images?.[0] ||
-                          "/placeholder.png"
-                        }
+                        src={product.image || product.images?.[0] || "/placeholder.png"}
                         alt={product.name}
                         className="w-12 h-12 object-cover rounded"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {product.name}
-                        </p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
                         <p className="text-xs text-gray-500">{product.brand}</p>
                       </div>
                       <span className="text-sm font-semibold text-red-600 whitespace-nowrap">
@@ -333,7 +282,7 @@ export default function Header() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Mobile Search Button */}
             <button
               onClick={() => setIsSearchExpanded(!isSearchExpanded)}
@@ -341,10 +290,8 @@ export default function Header() {
             >
               <SearchIcon />
             </button>
-            <Link
-              href="/cart"
-              className="relative hover:text-red-500 transition p-2 group"
-            >
+
+            <Link href="/cart" className="relative hover:text-red-500 transition p-2 group">
               <CartIcon />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -353,52 +300,24 @@ export default function Header() {
               )}
             </Link>
 
-            {/* User Account */}
+            {/* User Account (desktop) */}
             {isAuthenticated && user ? (
-              <div className="relative group">
+              <div className="relative group hidden md:block">
                 <button className="flex items-center gap-2 hover:text-red-500 transition p-2">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="hidden md:block text-sm font-medium">
-                    {user.userName}
-                  </span>
+                  <span className="text-sm font-medium">{user.userName}</span>
                 </button>
                 <div className="absolute top-full right-0 bg-white shadow-lg rounded-lg py-2 min-w-[150px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   {user.role === "admin" && (
-                    <Link
-                      href="/admin"
-                      className="block px-4 py-2 hover:bg-gray-100 text-blue-600 font-medium"
-                    >
+                    <Link href="/admin" className="block px-4 py-2 hover:bg-gray-100 text-blue-600 font-medium">
                       Quản lý
                     </Link>
                   )}
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    Tài khoản
-                  </Link>
-                  <Link
-                    href="/orders"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    Đơn hàng
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
-                  >
+                  <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">Tài khoản</Link>
+                  <Link href="/orders" className="block px-4 py-2 hover:bg-gray-100">Đơn hàng</Link>
+                  <button onClick={logout} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
                     Đăng xuất
                   </button>
                 </div>
@@ -406,139 +325,188 @@ export default function Header() {
             ) : (
               <Link
                 href="/login"
-                className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition font-medium"
+                className="hidden md:block bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition font-medium"
               >
                 Đăng nhập
               </Link>
             )}
 
+            {/* Hamburger */}
             <button
               className="md:hidden text-gray-600 hover:text-red-500 transition p-2"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => {
+                setIsMenuOpen(!isMenuOpen);
+                if (isMenuOpen) setIsBrandOpen(false); // reset brand khi đóng menu
+              }}
             >
               {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
           </div>
         </div>
 
+        {/* Mobile Search Bar (expandable, dưới header row) */}
+        {isSearchExpanded && (
+          <div className="md:hidden mt-3" ref={searchRef}>
+            <form onSubmit={handleSearch} className="relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm sneaker..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                autoFocus
+                className="w-full px-4 py-3 pr-12 border-2 border-red-500 rounded-lg focus:outline-none text-sm"
+              />
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-red-500 hover:text-red-600 transition"
+              >
+                {isSearching ? (
+                  <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <SearchIcon />
+                )}
+              </button>
+            </form>
+
+            {/* Mobile suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                {suggestions.map((product) => (
+                  <button
+                    key={product._id || product.id}
+                    onClick={() => handleSuggestionClick(product)}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-b-0"
+                  >
+                    <img
+                      src={product.image || product.images?.[0] || "/placeholder.png"}
+                      alt={product.name}
+                      className="w-10 h-10 object-cover rounded"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                      <p className="text-xs text-gray-500">{product.brand}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-red-600 whitespace-nowrap">
+                      {formatPrice(product.price)}
+                    </span>
+                  </button>
+                ))}
+                <button
+                  onClick={(e) => handleSearch(e)}
+                  className="w-full px-4 py-3 text-sm text-center text-red-600 hover:bg-red-50 transition font-medium"
+                >
+                  Xem tất cả kết quả cho "{searchInput}"
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Mobile Menu */}
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pb-4 border-t pt-4">
-            {/* Mobile Search Bar */}
-            <div className="mb-4">
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm sneaker..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:text-red-600 transition"
-                >
-                  <SearchIcon />
-                </button>
-              </form>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <Link href="/" className="hover:text-red-500 transition">
+            <div className="flex flex-col gap-1">
+              <Link
+                href="/"
+                className="px-2 py-3 hover:text-red-500 transition rounded-lg hover:bg-gray-50"
+                onClick={closeMenu}
+              >
                 Trang chủ
               </Link>
+
+              {/* Thương hiệu - toggle dropdown */}
               <div>
-                <button className="font-semibold mb-2 flex items-center gap-1">
-                  Thương hiệu
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <button
+                  className="w-full flex items-center justify-between px-2 py-3 font-semibold rounded-lg hover:bg-gray-50 transition"
+                  onClick={() => setIsBrandOpen(!isBrandOpen)}
+                >
+                  <span>Thương hiệu</span>
+                  <ChevronDownIcon className={`transition-transform duration-200 ${isBrandOpen ? "rotate-180" : ""}`} />
                 </button>
-                <div className="pl-4 flex flex-col gap-2">
-                  {/* Tất cả thương hiệu */}
-                  <Link
-                    href="/collections/all"
-                    className="text-gray-900 font-medium hover:text-red-500"
-                  >
-                    Tất cả
-                  </Link>
-                  {brands.map((brand) => (
+
+                {isBrandOpen && (
+                  <div className="pl-4 flex flex-col mt-1 mb-1 border-l-2 border-red-100 ml-2">
                     <Link
-                      key={brand}
-                      href={`/collections/${brand.toLowerCase().replace(" ", "-")}`}
-                      className="text-gray-600 hover:text-red-500"
+                      href="/collections/all"
+                      className="px-2 py-2 font-medium text-gray-900 hover:text-red-500 rounded transition"
+                      onClick={closeMenu}
                     >
-                      {brand}
+                      Tất cả
                     </Link>
-                  ))}
-                </div>
+                    {brands.map((brand) => (
+                      <Link
+                        key={brand}
+                        href={`/collections/${brand.toLowerCase().replace(" ", "-")}`}
+                        className="px-2 py-2 text-gray-600 hover:text-red-500 rounded transition"
+                        onClick={closeMenu}
+                      >
+                        {brand}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
-              <Link href="/uu-dai" className="text-red-500 font-semibold">
-                Khuyến mãi
+
+              <Link
+                href="/collections/uu-dai"
+                className="px-2 py-3 text-red-500 font-semibold rounded-lg hover:bg-red-50 transition"
+                onClick={closeMenu}
+              >
+                Ưu đãi
               </Link>
-              <Link href="/Blog" className="hover:text-red-500 transition">
+              <Link
+                href="/blog"
+                className="px-2 py-3 hover:text-red-500 transition rounded-lg hover:bg-gray-50"
+                onClick={closeMenu}
+              >
                 Blog
               </Link>
 
               {/* Mobile User Account */}
               {isAuthenticated && user ? (
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
+                <div className="border-t pt-4 mt-3">
+                  <div className="flex items-center gap-2 px-2 py-2 mb-1">
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span className="font-medium">{user.userName}</span>
+                    <span className="font-semibold text-gray-900">{user.userName}</span>
                   </div>
                   {user.role === "admin" && (
                     <Link
                       href="/admin"
-                      className="block py-2 text-blue-600 hover:text-blue-700 font-medium"
+                      className="block px-2 py-3 text-blue-600 hover:text-blue-700 font-medium rounded-lg hover:bg-blue-50 transition"
+                      onClick={closeMenu}
                     >
                       Quản lý
                     </Link>
                   )}
                   <Link
                     href="/profile"
-                    className="block py-2 text-gray-600 hover:text-red-500"
+                    className="block px-2 py-3 text-gray-600 hover:text-red-500 rounded-lg hover:bg-gray-50 transition"
+                    onClick={closeMenu}
                   >
                     Tài khoản
                   </Link>
                   <Link
                     href="/orders"
-                    className="block py-2 text-gray-600 hover:text-red-500"
+                    className="block px-2 py-3 text-gray-600 hover:text-red-500 rounded-lg hover:bg-gray-50 transition"
+                    onClick={closeMenu}
                   >
                     Đơn hàng
                   </Link>
                   <button
-                    onClick={logout}
-                    className="block w-full text-left py-2 text-red-600 hover:text-red-700"
+                    onClick={() => { logout(); closeMenu(); }}
+                    className="block w-full text-left px-2 py-3 text-red-600 hover:text-red-700 rounded-lg hover:bg-red-50 transition"
                   >
                     Đăng xuất
                   </button>
                 </div>
               ) : (
-                <div className="border-t pt-4 mt-4">
+                <div className="border-t pt-4 mt-3">
                   <Link
                     href="/login"
                     className="block bg-black text-white text-center py-3 rounded-lg hover:bg-gray-800 transition font-medium"
+                    onClick={closeMenu}
                   >
                     Đăng nhập
                   </Link>

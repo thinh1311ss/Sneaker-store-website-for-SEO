@@ -88,6 +88,8 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<TabType>("products");
+  // ── THÊM MỚI: state cho mobile sidebar ──
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -518,23 +520,58 @@ export default function AdminDashboard() {
     return null;
   }
 
+  // Tab labels cho mobile topbar
+  const TAB_LABELS: Record<TabType, string> = {
+    products: "📦 Sản phẩm",
+    orders:   "📋 Đơn hàng",
+    users:    "👥 Người dùng",
+    vouchers: "🎟️ Mã giảm giá",
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
-        <div className="p-6 border-b border-gray-200">
+
+      {/* ── THÊM MỚI: Mobile overlay khi sidebar mở ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — fixed trên mobile, static trên desktop */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-30 flex flex-col transition-transform duration-300
+          md:static md:translate-x-0 md:z-auto md:flex
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">Quản lý hệ thống</h1>
+          {/* Nút đóng chỉ hiện trên mobile */}
+          <button
+            className="md:hidden p-1 rounded hover:bg-gray-100 transition"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
           {[
-            { id: "products", label: "📦 Sản phẩm", icon: "📦" },
-            { id: "orders", label: "📋 Đơn hàng", icon: "📋" },
-            { id: "users", label: "👥 Người dùng", icon: "👥" },
-            { id: "vouchers", label: "🎟️ Mã giảm giá", icon: "🎟️" },
+            { id: "products", label: "📦 Sản phẩm" },
+            { id: "orders",   label: "📋 Đơn hàng" },
+            { id: "users",    label: "👥 Người dùng" },
+            { id: "vouchers", label: "🎟️ Mã giảm giá" },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
+              onClick={() => {
+                setActiveTab(tab.id as TabType);
+                setSidebarOpen(false); // đóng sidebar sau khi chọn tab trên mobile
+              }}
               className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${
                 activeTab === tab.id
                   ? "bg-red-600 text-white"
@@ -548,14 +585,29 @@ export default function AdminDashboard() {
           <Link
             href="/admin/blog-management"
             className="block w-full rounded-lg border border-gray-200 bg-slate-50 px-4 py-3 text-left text-gray-700 font-medium transition hover:bg-gray-100"
+            onClick={() => setSidebarOpen(false)}
           >
             📝 Quản lý Blog
           </Link>
         </nav>
-      </div>
+      </aside>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto min-w-0">
+
+        {/* ── THÊM MỚI: Mobile topbar với hamburger ── */}
+        <div className="md:hidden flex items-center gap-3 bg-white border-b px-4 py-3 sticky top-0 z-10 shadow-sm">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="font-semibold text-gray-900">{TAB_LABELS[activeTab]}</span>
+        </div>
+
         {/* Loading Spinner */}
         {loading ? (
           <div className="flex items-center justify-center min-h-screen">
@@ -565,13 +617,13 @@ export default function AdminDashboard() {
             </div>
           </div>
         ) : (
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {/* Products Tab */}
             {activeTab === "products" && (
               <div>
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-wrap gap-3 justify-between items-start mb-6">
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                       Quản lý sản phẩm
                     </h2>
                     <p className="text-gray-600 mt-1">
@@ -580,7 +632,7 @@ export default function AdminDashboard() {
                   </div>
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-medium flex items-center gap-2"
+                    className="bg-red-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-red-700 transition font-medium flex items-center gap-2"
                   >
                     + Thêm sản phẩm
                   </button>
@@ -588,7 +640,7 @@ export default function AdminDashboard() {
 
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[640px]">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
@@ -679,7 +731,7 @@ export default function AdminDashboard() {
             {activeTab === "orders" && (
               <div>
                 <div className="mb-6">
-                  <h2 className="text-3xl font-bold text-gray-900">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                     Quản lý đơn hàng
                   </h2>
                   <p className="text-gray-600 mt-1">
@@ -689,7 +741,7 @@ export default function AdminDashboard() {
 
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[700px]">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
@@ -813,7 +865,7 @@ export default function AdminDashboard() {
             {activeTab === "users" && (
               <div>
                 <div className="mb-6">
-                  <h2 className="text-3xl font-bold text-gray-900">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                     Quản lý người dùng
                   </h2>
                   <p className="text-gray-600 mt-1">
@@ -823,7 +875,7 @@ export default function AdminDashboard() {
 
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[500px]">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
@@ -887,7 +939,7 @@ export default function AdminDashboard() {
             {activeTab === "vouchers" && (
               <div>
                 <div className="mb-6">
-                  <h2 className="text-3xl font-bold text-gray-900">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                     Quản lý mã giảm giá
                   </h2>
                   <p className="text-gray-600 mt-1">
@@ -897,7 +949,7 @@ export default function AdminDashboard() {
 
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[540px]">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
