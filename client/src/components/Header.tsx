@@ -167,7 +167,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center md:gap-4 lg:gap-8 md:text-sm lg:text-base">
             <Link href="/" className="hover:text-red-500 transition">
               Trang chủ
             </Link>
@@ -197,6 +197,12 @@ export default function Header() {
                 ))}
               </div>
             </div>
+            <Link href="/collections/nam" className="hover:text-red-500 transition">
+              Nam
+            </Link>
+            <Link href="/collections/nu" className="hover:text-red-500 transition">
+              Nữ
+            </Link>
             <Link href="/collections/uu-dai" className="text-red-500 font-semibold">
               Ưu đãi
             </Link>

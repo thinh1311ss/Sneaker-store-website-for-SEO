@@ -542,8 +542,8 @@ export default function AdminDashboard() {
       {/* Sidebar — fixed trên mobile, static trên desktop */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-30 flex flex-col transition-transform duration-300
-          md:static md:translate-x-0 md:z-auto md:flex
+          fixed md:top-0 top-138px  left-0 h-[calc(100vh-138px)] w-64 bg-white shadow-lg z-30 flex flex-col transition-transform duration-300 
+          md:static md:translate-x-0 md:z-auto md:flex 
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >

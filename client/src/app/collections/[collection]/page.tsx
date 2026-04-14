@@ -77,12 +77,12 @@ export default async function CollectionPage({ params, searchParams }: Props) {
     collectionTitle = "Giày Nam";
     collectionDescription =
       "Khám phá bộ sưu tập giày thể thao nam chính hãng với thiết kế mạnh mẽ, năng động và công nghệ tiên tiến nhất.";
-    //filteredProducts = filteredProducts.filter(p => p.sex === 'Nam' || p.sex === 'Unisex');
+    filteredProducts = filteredProducts.filter(p => p.gender === 'Nam' || p.gender === 'Unisex');
   } else if (collection === "nu") {
     collectionTitle = "Giày Nữ";
     collectionDescription =
       "Bộ sưu tập giày thể thao nữ chính hãng mang đến sự thoải mái, phong cách thời trang và nâng niu từng bước chân của bạn.";
-    // filteredProducts = filteredProducts.filter(p => p.sex === 'Nữ' || p.sex === 'Unisex');
+    filteredProducts = filteredProducts.filter(p => p.gender === 'Nữ' || p.gender === 'Unisex');
   } else if (collection === "uu-dai") {
     collectionTitle = "Sản Phẩm Ưu Đãi";
     collectionDescription =
