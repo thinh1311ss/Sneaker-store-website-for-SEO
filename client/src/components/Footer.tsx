@@ -40,7 +40,7 @@ export default function Footer() {
             <Link href="/" className="text-2xl font-bold">
               <div className="flex items-center gap-2">
                 <Image
-                  src="/logo_UITSneaker_v2.png"
+                  src="/Logo_UITSneaker_v2.png"
                   alt="UIT Sneakers Logo"
                   width={160}
                   height={125}

@@ -31,6 +31,7 @@ export interface Product {
   storageGuide: string;
   category: string;
   quantity: number;
+  gender?: 'Nam' | 'Nữ' | 'Unisex';
 }
 
 // ── Interface MongoDB trả về ─────────────────────────────────────────────────
@@ -59,6 +60,7 @@ interface MongoProduct {
     US10_5?: number;
   };
   quantity?: number;
+  gender?: 'Nam' | 'Nữ' | 'Unisex';
   images?: string[];
 }
 
@@ -77,7 +79,7 @@ function createSlug(name: string): string {
 
 function sizesToString(sizes?: MongoProduct['sizes']): string {
   if (!sizes || typeof sizes !== 'object') return '';
-  const sizeOrder = ['US6', 'US6_5', 'US7', 'US7_5', 'US8', 'US8_5', 'US9', 'US9_5', 'US10', 'US10_5'];
+  const sizeOrder = ['US6', 'US6_5', 'US7', 'US7_5', 'US8', 'US8_5', 'US9', 'US9_5', 'US10', 'US10_5', 'US11', 'US11_5', 'US12', 'US12_5', 'US13', 'US13_5', 'US14', 'US14_5', 'US15', 'US15_5', 'US16', 'US16_5', 'US17', 'US17_5', 'US18'];
   return sizeOrder
     .filter((s) => s in sizes)
     .map((s) => s.replace('_', '.').replace('US', 'US '))
@@ -104,6 +106,7 @@ function mapMongoToProduct(item: MongoProduct, index: number): Product {
     storageGuide: item.storageInstructions || '',
     category: item.category || 'Sneaker',
     quantity: item.quantity || 0,
+    gender: item.gender,
   };
 }
 
