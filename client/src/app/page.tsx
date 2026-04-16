@@ -169,14 +169,28 @@ function HomePageInner() {
             <div className="text-center mb-12">
               <span className="inline-block px-4 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-semibold mb-4">BỘ SƯU TẬP</span>
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Tất Cả Sản Phẩm</h2>
-              <p className="text-gray-600">{filteredProducts.length} sản phẩm sneaker chính hãng</p>
+              <p className="text-gray-600">
+                 Hiển thị {Math.min(filteredProducts.length, 20)} trong {filteredProducts.length} sản phẩm sneaker chính hãng
+              </p>
             </div>
             <BrandFilter brands={brands} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product._id || product.id} product={product} />
-              ))}
+            {filteredProducts.slice(0, 20).map((product) => (
+            <ProductCard key={product._id || product.id} product={product} />
+            ))}
             </div>
+
+            {/* Nút Xem tất cả - chỉ hiện khi có nhiều hơn 20 sản phẩm */}
+            {filteredProducts.length > 20 && (
+            <div className="text-center mt-12">
+            <Link 
+              href="/collections/all" 
+              className="inline-block px-8 py-4 bg-black text-white font-bold rounded-full hover:bg-gray-800 hover:scale-105 transition-all"
+            >
+            Xem tất cả {filteredProducts.length} sản phẩm →
+            </Link>
+            </div>
+            )}
           </div>
         </section>
       )}

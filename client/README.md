@@ -130,4 +130,4 @@ export const siteConfig = {
 MIT License - Free to use for personal and commercial projects.
 UIT
 # Sneaker-store-website-for-SEO
-
+s
