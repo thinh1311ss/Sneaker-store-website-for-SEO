@@ -5,11 +5,10 @@ import Image from 'next/image';
 
 const brands = ['ON RUNNING', 'ASICS', 'HOKA', 'UNDER ARMOUR', 'PUMA', 'NIKE', 'ADIDAS', 'NEW BALANCE', 'SAUCONY', 'BROOKS'];
 
-// TODO: Thay các URL # bằng URL mạng xã hội thật của shop
 const SOCIAL_LINKS = {
-  facebook: '#',   // Ví dụ: 'https://facebook.com/uitsneakers'
-  instagram: '#',  // Ví dụ: 'https://instagram.com/uitsneakers'
-  tiktok: '#',     // Ví dụ: 'https://tiktok.com/@uitsneakers'
+  facebook: '#',
+  instagram: '#',
+  tiktok: '#',
 };
 
 export default function Footer() {
@@ -17,8 +16,6 @@ export default function Footer() {
     <footer className="bg-gray-900 text-white" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Chân trang website</h2>
 
-      {/* ── Băng rôn thương hiệu chạy liên tục ── */}
-      {/* BỎ aria-hidden ở wrapper vì danh sách brand là thông tin có ý nghĩa */}
       <div className="border-y border-white/10 bg-gray-800 overflow-hidden py-4">
         <div
           className="flex gap-16 animate-marquee whitespace-nowrap"
@@ -28,7 +25,6 @@ export default function Footer() {
             <span
               key={i}
               className="text-sm font-bold tracking-widest text-gray-200 uppercase flex-shrink-0 flex items-center gap-3"
-              // Phần lặp lại thứ 2 ẩn khỏi screen reader để tránh đọc trùng
               aria-hidden={i >= brands.length ? "true" : undefined}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" aria-hidden="true" />
@@ -44,18 +40,19 @@ export default function Footer() {
         `}</style>
       </div>
 
-      {/* ── Main footer ── */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
-          {/* Logo & About */}
           <div className="lg:col-span-1">
             <Link href="/" aria-label="Trang chủ UIT Sneakers" className="text-2xl font-bold">
               <div className="flex items-center gap-2">
+                {/* Logo - dùng WebP, KHÔNG có priority vì ở dưới fold */}
                 <Image
-                  src="/Logo_UITSneaker_v2.png"
+                  src="/Logo_UITSneaker_v2.webp"
                   alt="UIT Sneakers Logo"
                   width={160}
                   height={125}
+                  quality={80}
+                  loading="lazy"
                   className="object-contain"
                 />
               </div>
@@ -65,7 +62,6 @@ export default function Footer() {
               authentic, giá tốt nhất thị trường.
             </p>
 
-            {/* FIX: Dùng <ul>/<li> thay vì role="list" trên <div> */}
             <ul className="flex gap-3 mt-6" aria-label="Mạng xã hội">
               <li>
                 <a
@@ -109,7 +105,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Giới thiệu */}
           <nav aria-labelledby="footer-about">
             <h4 id="footer-about" className="font-bold text-sm uppercase tracking-wider mb-5">
               Về chúng tôi
@@ -135,7 +130,6 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Hỗ trợ */}
           <nav aria-labelledby="footer-support">
             <h4 id="footer-support" className="font-bold text-sm uppercase tracking-wider mb-5">
               Hỗ trợ
@@ -161,13 +155,11 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Phương thức thanh toán */}
           <div>
             <h4 id="footer-payment" className="font-bold text-sm uppercase tracking-wider mb-5">
               Thanh toán
             </h4>
 
-            {/* FIX: Dùng <ul>/<li> đúng semantic */}
             <ul className="grid grid-cols-3 gap-3" aria-labelledby="footer-payment">
               {[
                 { src: "/momo.png", alt: "MoMo" },
@@ -187,13 +179,14 @@ export default function Footer() {
                     alt={pm.alt}
                     width={60}
                     height={60}
+                    quality={75}
+                    loading="lazy"
                     className="object-contain"
                   />
                 </li>
               ))}
             </ul>
 
-            {/* Chứng nhận */}
             <div className="mt-5 space-y-2">
               <div className="flex items-center gap-2">
                 <Image
@@ -201,15 +194,15 @@ export default function Footer() {
                   alt="Chứng nhận Bộ Công Thương"
                   width={150}
                   height={20}
+                  loading="lazy"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Image src="/DMCA.png" alt="DMCA Protected" width={80} height={20} />
+                <Image src="/DMCA.png" alt="DMCA Protected" width={80} height={20} loading="lazy" />
               </div>
             </div>
           </div>
 
-          {/* Liên hệ - dùng <address> đúng semantic */}
           <address className="not-italic">
             <h4 className="font-bold text-sm uppercase tracking-wider mb-5">
               Liên hệ
@@ -232,7 +225,6 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </div>
-                {/* FIX: Số điện thoại dùng <a href="tel:..."> để click gọi được */}
                 <a href="tel:1900000000" className="text-gray-300 text-sm hover:text-white transition">
                   1900 xxxx xx
                 </a>
@@ -243,7 +235,6 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                {/* FIX: Email dùng <a href="mailto:..."> */}
                 <a href="mailto:contact@sneakerstore.vn" className="text-gray-300 text-sm hover:text-white transition">
                   contact@sneakerstore.vn
                 </a>
@@ -263,7 +254,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">

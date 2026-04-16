@@ -9,7 +9,6 @@ import { useAuth } from "@/context/AuthContext";
 import { formatPrice, Product } from "@/lib/api";
 import Image from "next/image";
 
-// SVG Icons - thêm aria-hidden vì button/link cha đã có aria-label
 const SearchIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -54,13 +53,11 @@ export default function Header() {
   const { cartCount } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
 
-  // Đóng toàn bộ mobile menu
   const closeMenu = () => {
     setIsMenuOpen(false);
     setIsBrandOpen(false);
   };
 
-  // Fetch brands từ API
   useEffect(() => {
     async function fetchBrands() {
       try {
@@ -73,7 +70,6 @@ export default function Header() {
     fetchBrands();
   }, []);
 
-  // Search suggestions với debounce
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (searchInput.trim().length >= 2) {
@@ -97,7 +93,6 @@ export default function Header() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Click outside để đóng suggestions
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -141,32 +136,30 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
-      {/* Top bar */}
       <div className="bg-black text-white text-sm py-2">
         <div className="container mx-auto px-4 text-center">
           Miễn phí vận chuyển đơn hàng từ 2.000.000đ | Đổi trả trong 30 ngày
         </div>
       </div>
 
-      {/* Main header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
+          {/* Logo - dùng WebP + quality 80 để tiết kiệm bandwidth */}
           <Link href="/" aria-label="Trang chủ UIT Sneakers" className="text-2xl font-bold flex-shrink-0">
             <div className="flex items-center gap-2">
               <Image
-                src="/Logo_UITSneaker_v2.png"
+                src="/Logo_UITSneaker_v2.webp"
                 alt="UIT Sneakers Logo"
                 width={125}
                 height={125}
                 priority
+                quality={80}
                 className="object-contain"
-                style={{ height: "66px" }}
+                style={{ height: "66px", width: "auto" }}
               />
             </div>
           </Link>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center md:gap-4 lg:gap-8 md:text-sm lg:text-base" aria-label="Menu chính">
             <Link href="/" className="text-gray-800 hover:text-red-600 transition">
               Trang chủ
@@ -203,7 +196,6 @@ export default function Header() {
             <Link href="/collections/nu" className="text-gray-800 hover:text-red-600 transition">
               Nữ
             </Link>
-            {/* FIX CONTRAST: text-red-500 → text-red-600 (đậm hơn để đủ contrast trên nền trắng) */}
             <Link href="/collections/uu-dai" className="text-red-600 font-semibold">
               Ưu đãi
             </Link>
@@ -212,7 +204,6 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Desktop Search Bar */}
           <div className="hidden md:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
             <div
               className={`relative flex items-center w-full transition-all duration-300 ${
@@ -258,14 +249,12 @@ export default function Header() {
                 )}
               </button>
 
-              {/* Search Suggestions Dropdown */}
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden" role="listbox" aria-label="Gợi ý tìm kiếm">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
                   {suggestions.map((product) => (
                     <button
                       key={product._id || product.id}
                       type="button"
-                      role="option"
                       aria-label={`${product.name} - ${product.brand} - ${formatPrice(product.price)}`}
                       onClick={() => handleSuggestionClick(product)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-b-0"
@@ -296,9 +285,7 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Mobile Search Button */}
             <button
               type="button"
               aria-label="Mở tìm kiếm"
@@ -325,7 +312,6 @@ export default function Header() {
               )}
             </Link>
 
-            {/* User Account (desktop) */}
             {isAuthenticated && user ? (
               <div className="relative group hidden md:block">
                 <button
@@ -364,7 +350,6 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Hamburger */}
             <button
               type="button"
               aria-label={isMenuOpen ? "Đóng menu" : "Mở menu"}
@@ -381,7 +366,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
         {isSearchExpanded && (
           <div className="md:hidden mt-3" ref={searchRef}>
             <form onSubmit={handleSearch} className="relative" role="search">
@@ -408,14 +392,12 @@ export default function Header() {
               </button>
             </form>
 
-            {/* Mobile suggestions */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden" role="listbox">
+              <div className="mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
                 {suggestions.map((product) => (
                   <button
                     key={product._id || product.id}
                     type="button"
-                    role="option"
                     aria-label={`${product.name} - ${product.brand} - ${formatPrice(product.price)}`}
                     onClick={() => handleSuggestionClick(product)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left border-b border-gray-100 last:border-b-0"
@@ -446,7 +428,6 @@ export default function Header() {
           </div>
         )}
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <nav id="mobile-menu" className="md:hidden mt-4 pb-4 border-t pt-4" aria-label="Menu di động">
             <div className="flex flex-col gap-1">
@@ -458,7 +439,6 @@ export default function Header() {
                 Trang chủ
               </Link>
 
-              {/* Thương hiệu - toggle dropdown */}
               <div>
                 <button
                   type="button"
@@ -494,7 +474,6 @@ export default function Header() {
                 )}
               </div>
 
-              {/* FIX CONTRAST: text-red-500 → text-red-600 */}
               <Link
                 href="/collections/uu-dai"
                 className="px-2 py-3 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition"
@@ -510,7 +489,6 @@ export default function Header() {
                 Blog
               </Link>
 
-              {/* Mobile User Account */}
               {isAuthenticated && user ? (
                 <div className="border-t pt-4 mt-3">
                   <div className="flex items-center gap-2 px-2 py-2 mb-1">

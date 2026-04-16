@@ -7,7 +7,17 @@ import Footer from "@/components/Footer";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 
-const inter = Inter({ subsets: ["latin", "vietnamese"] });
+// FIX FONT: Thêm display: 'swap' để tránh FOIT (Flash of Invisible Text)
+// Thêm preload: true (mặc định đã có nhưng explicit cho rõ)
+// Thêm variable để có thể dùng trong Tailwind nếu cần
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  preload: true,
+  variable: "--font-inter",
+  fallback: ["system-ui", "arial"],
+  adjustFontFallback: true,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -69,8 +79,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
+    <html lang="vi" className={inter.variable}>
       <head>
+        {/* PRECONNECT: Báo trước cho browser kết nối sớm tới các domain quan trọng */}
+        {/* Nếu bạn dùng Cloudinary/S3/CDN khác cho ảnh, thêm vào đây */}
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
