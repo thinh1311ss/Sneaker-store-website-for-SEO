@@ -119,9 +119,15 @@ export function formatPrice(price: number): string {
 }
 
 // ── API functions ────────────────────────────────────────────────────────────
+// FIX: Dùng next.revalidate thay vì cache: 'no-store'
+// → Cho phép ISR cache HTML trên server, chỉ fetch lại sau 5 phút
+// → Giảm TTFB + Speed Index đáng kể
+
 export async function getAllProductsFromAPI(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/product`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE_URL}/api/product`, {
+      next: { revalidate: 300 }, // Cache 5 phút
+    });
     if (!res.ok) return [];
     const data: MongoProduct[] = await res.json();
     return data.map((item, index) => mapMongoToProduct(item, index));
@@ -133,7 +139,9 @@ export async function getAllProductsFromAPI(): Promise<Product[]> {
 
 export async function getProductById(id: string): Promise<Product | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/product/${id}`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE_URL}/api/product/${id}`, {
+      next: { revalidate: 300 },
+    });
     if (!res.ok) return null;
     const data: MongoProduct = await res.json();
     return mapMongoToProduct(data, 0);
@@ -174,6 +182,7 @@ export async function getSaleProductsFromAPI(): Promise<Product[]> {
     .sort((a, b) => (b.discount || 0) - (a.discount || 0));
 }
 
+// Search vẫn dùng no-store vì kết quả phải real-time
 export async function searchProductsFromAPI(query: string): Promise<Product[]> {
   try {
     const res = await fetch(
@@ -190,7 +199,7 @@ export async function searchProductsFromAPI(query: string): Promise<Product[]> {
   }
 }
 
-// ── Backward compatible exports (giữ tên cũ) ────────────────────────────────
+// ── Backward compatible exports ──────────────────────────────────────────────
 export const getAllProducts = getAllProductsFromAPI;
 export const getProductBySlug = getProductBySlugFromAPI;
 export const getProductsByBrand = getProductsByBrandFromAPI;
