@@ -6,13 +6,14 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/'],
+        disallow: ['/api/', '/admin/', '/_next/', '/login', '/profile', '/orders'],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
       },
     ],
-    sitemap: 'https://sneakerstore.vn/sitemap.xml',
+    // FIX: Domain thật thay vì sneakerstore.vn
+    sitemap: 'https://www.uitsneakers.io.vn/sitemap.xml',
   };
 }
