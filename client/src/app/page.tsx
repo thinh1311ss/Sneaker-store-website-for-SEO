@@ -16,7 +16,7 @@ const heroSlides = [
 ];
 
 // Số sản phẩm tối đa hiển thị ở homepage
-const HOMEPAGE_PRODUCTS_LIMIT = 20;
+const HOMEPAGE_PRODUCTS_LIMIT = 12;
 
 function HomePageInner() {
   const [products, setProducts] = useState<Product[]>([]);
