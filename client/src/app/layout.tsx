@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "google15099d19ca9baeb4",
+    google: "Dz0zY8psEIuDpWF0fX9STA-oXW_Lw-V72ZIKHs8c40w",
   },
   alternates: {
     canonical: siteConfig.url,
