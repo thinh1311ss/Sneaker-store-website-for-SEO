@@ -5,17 +5,22 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { Metadata } from 'next';
 import { siteConfig } from '@/lib/seo';
 
+// FIX: Metadata dùng siteConfig.name + domain đúng
 export const metadata: Metadata = {
-  title: 'Thương Hiệu | Sneaker Store',
-  description: 'Khám phá các thương hiệu giày sneaker nổi tiếng tại Sneaker Store.',
+  title: `Thương Hiệu Giày Sneaker Chính Hãng | ${siteConfig.name}`,
+  description: 'Khám phá các thương hiệu giày sneaker nổi tiếng: Nike, Adidas, HOKA, Puma, On Running, Under Armour, Asics. 100% chính hãng tại UIT Sneakers.',
   openGraph: {
-    title: 'Thương Hiệu | Sneaker Store',
-    description: 'Khám phá các thương hiệu giày sneaker nổi tiếng tại Sneaker Store.',
+    title: `Thương Hiệu Giày Sneaker Chính Hãng | ${siteConfig.name}`,
+    description: 'Khám phá các thương hiệu giày sneaker nổi tiếng: Nike, Adidas, HOKA, Puma, On Running, Under Armour, Asics. 100% chính hãng tại UIT Sneakers.',
     url: `${siteConfig.url}/thuong-hieu`,
+    type: 'website',
+    siteName: siteConfig.name,
+  },
+  alternates: {
+    canonical: `${siteConfig.url}/thuong-hieu`,
   },
 };
 
-// Map tên brand → tên file thực tế trong /public/brands/
 const brandLogoMap: Record<string, string> = {
   'ON RUNNING':    '/brands/ON.webp',
   'ASICS':         '/brands/ASICS.webp',
@@ -51,9 +56,10 @@ export default async function BrandsPage() {
             const logoSrc = brandLogoMap[brand];
 
             return (
- <Link
+              <Link
                 key={brand}
                 href={`/collections/${slug}`}
+                aria-label={`Xem giày ${brand} chính hãng`}
                 className="bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors group"
                 style={{ aspectRatio: '3/2' }}
               >

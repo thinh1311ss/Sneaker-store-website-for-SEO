@@ -6,7 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Pagination from "@/components/Pagination";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { siteConfig } from "@/lib/seo";
+import { siteConfig, generateCollectionSchema, generateBreadcrumbSchema } from "@/lib/seo";
 import Image from "next/image";
 
 interface Props {
@@ -32,28 +32,51 @@ const brand_banners: Record<string, string> = {
   ADIDAS: "/ADIDAS_banner.webp",
 };
 
+// FIX: Metadata tối ưu SEO — mỗi collection có title/description riêng biệt
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const collection = params.collection.toLowerCase();
   let title = "Bộ sưu tập";
+  let description = "";
+  let matchedBrand = "";
 
-  if (collection === "nam") title = "Giày Nam";
-  else if (collection === "nu") title = "Giày Nữ";
-  else if (collection === "uu-dai") title = "Sản Phẩm Ưu Đãi";
-  else {
+  if (collection === "nam") {
+    title = "Giày Sneaker Nam";
+    description = "Mua giày sneaker nam chính hãng giá tốt. Nike, Adidas, HOKA, Puma... Freeship đơn từ 2 triệu. Đổi trả 30 ngày.";
+  } else if (collection === "nu") {
+    title = "Giày Sneaker Nữ";
+    description = "Mua giày sneaker nữ chính hãng giá tốt. Nike Air Force 1, Adidas Ultraboost... Freeship đơn từ 2 triệu. Đổi trả 30 ngày.";
+  } else if (collection === "uu-dai") {
+    title = "Giày Sneaker Giảm Giá";
+    description = "Săn giày sneaker chính hãng giảm giá đến 70%. Nike, Adidas, HOKA, On Running... Số lượng có hạn, nhanh tay!";
+  } else if (collection === "all") {
+    title = "Tất Cả Giày Sneaker";
+    description = "Khám phá hơn 200+ giày sneaker chính hãng. Nike, Adidas, HOKA, Puma, On Running, Under Armour. Giá tốt nhất Việt Nam.";
+  } else {
     const brands = await getAllBrands();
-    const matchedBrand = brands.find(
+    matchedBrand = brands.find(
       (b) => b.toLowerCase().replace(/ /g, "-") === collection,
-    );
-    if (matchedBrand) title = `Giày ${matchedBrand}`;
+    ) || "";
+    if (matchedBrand) {
+      title = `Giày ${matchedBrand}`;
+      description = `Mua giày ${matchedBrand} chính hãng giá tốt nhất tại UIT Sneakers. Đa dạng mẫu mã, freeship đơn từ 2 triệu, đổi trả 30 ngày.`;
+    }
   }
 
+  const pageTitle = `${title} Chính Hãng Giá Tốt | ${siteConfig.name}`;
+  const pageUrl = `${siteConfig.url}/collections/${params.collection}`;
+
   return {
-    title: `${title} Chính Hãng | Sneaker Store`,
-    description: `Khám phá bộ sưu tập ${title.toLowerCase()} chính hãng mới nhất tại Sneaker Store. Đa dạng mẫu mã, cam kết chất lượng.`,
+    title: pageTitle,
+    description: description || `Khám phá bộ sưu tập ${title.toLowerCase()} chính hãng tại ${siteConfig.name}.`,
     openGraph: {
-      title: `${title} Chính Hãng | Sneaker Store`,
-      description: `Khám phá bộ sưu tập ${title.toLowerCase()} chính hãng mới nhất tại Sneaker Store. Đa dạng mẫu mã, cam kết chất lượng.`,
-      url: `${siteConfig.url}/collections/${params.collection}`,
+      title: pageTitle,
+      description: description,
+      url: pageUrl,
+      type: "website",
+      siteName: siteConfig.name,
+    },
+    alternates: {
+      canonical: pageUrl,
     },
   };
 }
@@ -207,13 +230,37 @@ export default async function CollectionPage({ params, searchParams }: Props) {
     ? searchParams.brand[0]
     : searchParams.brand;
 
-  // Xoá brands.map(...) bị thừa, dùng brand_banners đã định nghĩa sẵn
   const brandBanner = matchedBrand
     ? (brand_banners[matchedBrand] ?? null)
     : null;
 
+  // Schema: Collection + Breadcrumb
+  const collectionSchema = isBrandPage && matchedBrand
+    ? generateCollectionSchema(matchedBrand, filteredProducts)
+    : null;
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Trang chủ", url: siteConfig.url },
+    {
+      name: collectionTitle.replace("Thương hiệu: ", ""),
+      url: `${siteConfig.url}/collections/${params.collection}`,
+    },
+  ]);
+
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      {collectionSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+        />
+      )}
+
       {/* Brand Banner */}
       {brandBanner && (
         <div className="relative w-full h-[420px] overflow-hidden">
