@@ -3,6 +3,28 @@
 
 Website bán giày sneaker chính hãng với cấu trúc SEO tối ưu, được xây dựng bằng Next.js 14 App Router.
 
+# UIT Sneakers - Sneaker Store Website for SEO
+
+🔗 **Live Demo:** [https://www.uitsneakers.io.vn](https://www.uitsneakers.io.vn)
+
+## Performance
+- PageSpeed Performance: 100/100
+- Accessibility: 95/100
+- Best Practices: 100/100
+- SEO: 100/100
+
+## Tech Stack
+- Next.js 14 (App Router + Server Components)
+- MongoDB
+- Tailwind CSS
+- Vercel
+
+## Features
+- Server-Side Rendering cho SEO
+- Product Schema (Rich Results)
+- Dynamic Sitemap
+- Image Optimization (WebP/AVIF)
+
 ## ✨ Tính năng SEO
 
 - ✅ **Static Site Generation (SSG)** - Trang được pre-render, load nhanh
@@ -130,4 +152,4 @@ export const siteConfig = {
 MIT License - Free to use for personal and commercial projects.
 UIT
 # Sneaker-store-website-for-SEO
-s
+
