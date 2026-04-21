@@ -81,15 +81,15 @@ const getBlogById = async (req, res) => {
 // POST /api/blog/create
 const postBlog = async (req, res) => {
   try {
-    const { title, excerpt, content, coverImage, tags, author, published } =
+    const { title, slug: slugInput, excerpt, content, coverImage, tags, author, published } =
       req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: "Title and content are required" });
     }
 
-    // Tạo slug unique
-    let slug = createSlug(title);
+    // Dùng slug từ frontend nếu có, không thì tự tạo từ title
+    let slug = slugInput?.trim() ? createSlug(slugInput) : createSlug(title);
     const existing = await blogModel.findOne({ slug });
     if (existing) {
       slug = `${slug}-${Date.now()}`;
@@ -120,14 +120,16 @@ const updateBlog = async (req, res) => {
     const { title, excerpt, content, coverImage, tags, author, published } =
       req.body;
 
+    const { title, slug: slugInput, excerpt, content, coverImage, tags, author, published } = req.body;
+
     const updateData = {
       updatedAt: Date.now(),
     };
 
     if (title) {
       updateData.title = title;
-      // Cập nhật slug nếu đổi title
-      let newSlug = createSlug(title);
+      // Dùng slug từ frontend nếu có, không thì tạo từ title
+      let newSlug = slugInput?.trim() ? createSlug(slugInput) : createSlug(title);
       const existing = await blogModel.findOne({
         slug: newSlug,
         _id: { $ne: id },
