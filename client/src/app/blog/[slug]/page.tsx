@@ -72,10 +72,11 @@ function formatDate(dateStr: string) {
 
 // ─── Markdown → HTML (chỉ cho text blocks, không động đến ảnh custom) ────────
 function renderMarkdown(md: string): string {
+  md = md.normalize("NFC");
   return md
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold mt-8 mb-3 text-gray-900">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-black mt-10 mb-4 text-gray-900" style="font-family:\'Lora\',Georgia,serif">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-black mt-12 mb-5 text-gray-900" style="font-family:\'Lora\',Georgia,serif">$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-black mt-10 mb-4 text-gray-900" style="font-family:var(--font-lora),Georgia,serif">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-black mt-12 mb-5 text-gray-900" style="font-family:var(--font-lora),Georgia,serif">$1</h1>')
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
@@ -105,6 +106,7 @@ type ContentBlock =
 //   Ảnh đơn  : [image:https://...url...|Chú thích tùy chọn]
 //   Slide    : [gallery:url1,url2,url3|Chú thích tùy chọn]
 function parseContent(raw: string): ContentBlock[] {
+  raw = raw.normalize("NFC");
   const BLOCK_RE = /\[(image|gallery):([^\]]+)\]/g;
   const blocks: ContentBlock[] = [];
   let lastIndex = 0;
@@ -207,7 +209,7 @@ export default async function BlogDetail({
 
         {/* Title */}
         <h1 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-6"
-          style={{ fontFamily: "'Lora', Georgia, serif" }}>
+          style={{ fontFamily: "var(--font-lora), Georgia, serif" }}>
           {blog.title}
         </h1>
 

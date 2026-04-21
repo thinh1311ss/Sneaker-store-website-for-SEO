@@ -107,7 +107,7 @@ export default async function BlogList({
           <div>
             <h1
               className="text-6xl md:text-8xl font-black tracking-tighter text-gray-900 leading-none"
-              style={{ fontFamily: "'Lora', Georgia, serif" }}
+              style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
             >
               Blog
             </h1>
@@ -157,7 +157,7 @@ export default async function BlogList({
                   </div>
                   <h2
                     className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-4 group-hover:text-red-600 transition-colors"
-                    style={{ fontFamily: "'Lora', Georgia, serif" }}
+                    style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
                   >
                     {featured.title}
                   </h2>
@@ -215,7 +215,7 @@ export default async function BlogList({
                     </div>
                     <h3
                       className="font-black text-gray-900 text-lg leading-tight mb-2 group-hover:text-red-600 transition-colors line-clamp-2"
-                      style={{ fontFamily: "'Lora', Georgia, serif" }}
+                      style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
                     >
                       {blog.title}
                     </h3>
