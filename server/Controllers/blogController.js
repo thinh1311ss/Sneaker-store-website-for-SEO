@@ -16,6 +16,13 @@ function createSlug(title) {
     .trim();
 }
 
+// Normalize string hoặc array of strings về NFC (fix lỗi font trên Windows)
+function nfc(value) {
+  if (typeof value === "string") return value.normalize("NFC");
+  if (Array.isArray(value)) return value.map((v) => (typeof v === "string" ? v.normalize("NFC") : v));
+  return value;
+}
+
 // GET /api/blog — lấy tất cả bài đã published
 const getListBlog = async (req, res) => {
   try {
@@ -96,13 +103,13 @@ const postBlog = async (req, res) => {
     }
 
     const blog = await blogModel.create({
-      title,
+      title: nfc(title),
       slug,
-      excerpt: excerpt || title.substring(0, 160),
-      content,
+      excerpt: nfc(excerpt || title.substring(0, 160)),
+      content: nfc(content),
       coverImage: coverImage || "",
-      tags: tags || [],
-      author: author || "Admin",
+      tags: nfc(tags || []),
+      author: nfc(author || "Admin"),
       published: published ?? false,
     });
 
@@ -125,7 +132,7 @@ const updateBlog = async (req, res) => {
     };
 
     if (title) {
-      updateData.title = title;
+      updateData.title = nfc(title);
       // Cập nhật slug nếu đổi title
       let newSlug = createSlug(title);
       const existing = await blogModel.findOne({
@@ -135,11 +142,11 @@ const updateBlog = async (req, res) => {
       if (existing) newSlug = `${newSlug}-${Date.now()}`;
       updateData.slug = newSlug;
     }
-    if (excerpt !== undefined) updateData.excerpt = excerpt;
-    if (content !== undefined) updateData.content = content;
+    if (excerpt !== undefined) updateData.excerpt = nfc(excerpt);
+    if (content !== undefined) updateData.content = nfc(content);
     if (coverImage !== undefined) updateData.coverImage = coverImage;
-    if (tags !== undefined) updateData.tags = tags;
-    if (author !== undefined) updateData.author = author;
+    if (tags !== undefined) updateData.tags = nfc(tags);
+    if (author !== undefined) updateData.author = nfc(author);
     if (published !== undefined) updateData.published = published;
 
     const blog = await blogModel.findByIdAndUpdate(id, updateData, {

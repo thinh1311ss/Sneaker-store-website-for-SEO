@@ -65,7 +65,7 @@ export default function Footer() {
             <ul className="flex gap-3 mt-6" aria-label="Mạng xã hội">
               <li>
                 <a
-                  href={SOCIAL_LINKS.facebook}
+                  href="https://www.facebook.com/profile.php?id=61568709059553"
                   aria-label="Theo dõi UIT Sneakers trên Facebook"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -78,7 +78,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href={SOCIAL_LINKS.instagram}
+                  href="https://www.instagram.com/uit_sneakersvn/"
                   aria-label="Theo dõi UIT Sneakers trên Instagram"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -113,9 +113,9 @@ export default function Footer() {
               {[
                 { name: "Giới thiệu", href: "/gioi-thieu" },
                 { name: "Hệ thống cửa hàng", href: "/he-thong-cua-hang" },
-                { name: "Thông tin liên hệ", href: "/pages/ho-tro-giai-dap-thac-mac#lien-he" },
-                { name: "Điều khoản & điều kiện", href: "/pages/ho-tro-giai-dap-thac-mac#dieu-khoan" },
-                { name: "Hợp tác cùng chúng tôi", href: "/pages/ho-tro-giai-dap-thac-mac#hop-tac" },
+                { name: "Thông tin liên hệ", href: "/ho-tro#lien-he" },
+                { name: "Điều khoản & điều kiện", href: "/ho-tro#dieu-khoan" },
+                { name: "Hợp tác cùng chúng tôi", href: "/ho-tro#hop-tac" },
               ].map((item) => (
                 <li key={item.name}>
                   <Link
@@ -215,8 +215,8 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <span className="text-gray-300 text-sm">
-                  123 Nguyễn Huệ, Q.1, TP.HCM
+                <span className="text-gray-300 text-sm">    
+                  Hàn Thuyên, Khu phố 6, P.Linh Xuân, Ho Chi Minh City, Vietnam
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -225,8 +225,8 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </div>
-                <a href="tel:1900000000" className="text-gray-300 text-sm hover:text-white transition">
-                  1900 xxxx xx
+                <a href="tel:+84396528253" className="text-gray-300 text-sm hover:text-white transition">
+                  +84 39 652 8253
                 </a>
               </li>
               <li className="flex items-center gap-3">
@@ -236,7 +236,7 @@ export default function Footer() {
                   </svg>
                 </div>
                 <a href="mailto:contact@sneakerstore.vn" className="text-gray-300 text-sm hover:text-white transition">
-                  contact@sneakerstore.vn
+                  uitsneakersvn@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-3">

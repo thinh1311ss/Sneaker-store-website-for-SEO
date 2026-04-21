@@ -19,9 +19,23 @@ interface BlogItem {
   slug: string;
   excerpt: string;
   coverImage: string;
+  tags: string[];
   author: string;
   published: boolean;
   createdAt: string;
+}
+
+// ─── Slug helper ──────────────────────────────────────────────────────────────
+function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 }
 
 // ─── Modal chèn ảnh / gallery ─────────────────────────────────────────────────
@@ -61,7 +75,6 @@ function InsertMediaModal({
       onClick={onClose}>
       <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
-
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">
             {mode === "image" ? "📷 Chèn ảnh đơn" : "🖼️ Chèn bộ ảnh slide"}
@@ -71,7 +84,6 @@ function InsertMediaModal({
         </div>
 
         <div className="space-y-4">
-          {/* URL inputs */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               {mode === "image" ? "URL ảnh" : "URL các ảnh"}
@@ -101,7 +113,6 @@ function InsertMediaModal({
             )}
           </div>
 
-          {/* Caption */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Chú thích <span className="text-slate-400 font-normal">(không bắt buộc)</span>
@@ -113,7 +124,6 @@ function InsertMediaModal({
             />
           </div>
 
-          {/* Preview syntax */}
           <div>
             <p className="mb-1 text-xs text-slate-500">Cú pháp sẽ được chèn:</p>
             <div className="rounded-xl bg-slate-100 px-3 py-2 font-mono text-xs text-slate-600 break-all">
@@ -137,6 +147,56 @@ function InsertMediaModal({
   );
 }
 
+// ─── Tag input component ──────────────────────────────────────────────────────
+function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
+  const [input, setInput] = useState("");
+
+  const addTag = (raw: string) => {
+    const val = raw.trim().toLowerCase().replace(/\s+/g, "-");
+    if (val && !tags.includes(val)) {
+      onChange([...tags, val]);
+    }
+    setInput("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addTag(input);
+    } else if (e.key === "Backspace" && !input && tags.length > 0) {
+      onChange(tags.slice(0, -1));
+    }
+  };
+
+  const removeTag = (tag: string) => onChange(tags.filter((t) => t !== tag));
+
+  return (
+    <div
+      className="min-h-[46px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 flex flex-wrap gap-1.5 items-center cursor-text focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all"
+      onClick={() => document.getElementById("tag-input-field")?.focus()}
+    >
+      {tags.map((tag) => (
+        <span key={tag}
+          className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-0.5 text-xs font-semibold text-white">
+          #{tag}
+          <button type="button" onClick={() => removeTag(tag)}
+            className="ml-0.5 text-slate-300 hover:text-white leading-none text-sm">×</button>
+        </span>
+      ))}
+      <input
+        id="tag-input-field"
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => { if (input.trim()) addTag(input); }}
+        placeholder={tags.length === 0 ? "Nhập tag rồi nhấn Enter hoặc dấu phẩy..." : ""}
+        className="flex-1 min-w-[140px] bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-400"
+      />
+    </div>
+  );
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
 export default function BlogManagement() {
   const router = useRouter();
@@ -146,15 +206,19 @@ export default function BlogManagement() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Form fields
+  const [editingId, setEditingId] = useState<string | null>(null); // null = create mode
   const [title, setTitle] = useState("");
+  const [slugField, setSlugField] = useState("");
+  const [slugManual, setSlugManual] = useState(false); // if true, don't auto-update slug from title
   const [excerpt, setExcerpt] = useState("");
   const [coverImage, setCoverImage] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [content, setContent] = useState("");
   const [isPublished, setIsPublished] = useState(true);
   const [modal, setModal] = useState<"image" | "gallery" | null>(null);
 
   const contentRef = useRef<HTMLTextAreaElement>(null);
-
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
@@ -162,6 +226,13 @@ export default function BlogManagement() {
     if (user?.role !== "admin") { router.push("/"); return; }
     fetchBlogs();
   }, [isAuthenticated, user, router]);
+
+  // Auto-generate slug from title (only when not manually edited)
+  useEffect(() => {
+    if (!slugManual) {
+      setSlugField(toSlug(title));
+    }
+  }, [title, slugManual]);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -179,7 +250,45 @@ export default function BlogManagement() {
     }
   };
 
-  // Chèn block vào vị trí con trỏ textarea
+  // Load blog into form for editing
+  const handleEdit = (blog: BlogItem) => {
+    setEditingId(blog._id);
+    setTitle(blog.title);
+    setSlugField(blog.slug);
+    setSlugManual(true); // don't overwrite existing slug
+    setExcerpt(blog.excerpt || "");
+    setCoverImage(blog.coverImage || "");
+    setTags(blog.tags || []);
+    setContent(""); // content not loaded in list — fetch separately
+    setIsPublished(blog.published);
+    setAlert(null);
+    // Fetch full content
+    fetch(`${API_BASE_URL}/api/blog/${blog.slug}`, {
+      headers: { Authorization: token ? `Bearer ${token}` : "" },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.content) setContent(data.content);
+      })
+      .catch(() => {});
+    // Scroll to form
+    setTimeout(() => {
+      document.getElementById("blog-form-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle("");
+    setSlugField("");
+    setSlugManual(false);
+    setExcerpt("");
+    setCoverImage("");
+    setTags([]);
+    setContent("");
+    setIsPublished(true);
+  };
+
   const insertAtCursor = (text: string) => {
     const el = contentRef.current;
     if (!el) {
@@ -205,24 +314,42 @@ export default function BlogManagement() {
       setAlert({ type: "error", message: "Vui lòng nhập tiêu đề và nội dung." });
       return;
     }
+    if (!slugField.trim()) {
+      setAlert({ type: "error", message: "Slug không được để trống." });
+      return;
+    }
+
     setSaving(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/blog/create`, {
-        method: "POST",
+      const payload = {
+        title: title.trim(),
+        slug: slugField.trim(),
+        excerpt: excerpt.trim(),
+        coverImage: coverImage.trim(),
+        tags,
+        content,
+        author: user?.userName || "Admin",
+        published: isPublished,
+      };
+
+      const isEditing = !!editingId;
+      const url = isEditing
+        ? `${API_BASE_URL}/api/blog/update/${editingId}`
+        : `${API_BASE_URL}/api/blog/create`;
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json", Authorization: token ? `Bearer ${token}` : "" },
-        body: JSON.stringify({
-          title: title.trim(),
-          excerpt: excerpt.trim(),
-          coverImage: coverImage.trim(),
-          content,
-          author: user?.userName || "Admin",
-          published: isPublished,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
-      if (!response.ok) { setAlert({ type: "error", message: data.error || "Lưu bài viết thất bại." }); return; }
-      setAlert({ type: "success", message: "Đăng bài viết thành công!" });
-      setTitle(""); setExcerpt(""); setCoverImage(""); setContent("");
+      if (!response.ok) {
+        setAlert({ type: "error", message: data.error || (isEditing ? "Cập nhật thất bại." : "Lưu bài viết thất bại.") });
+        return;
+      }
+      setAlert({ type: "success", message: isEditing ? "Cập nhật bài viết thành công!" : "Đăng bài viết thành công!" });
+      resetForm();
       fetchBlogs();
     } catch {
       setAlert({ type: "error", message: "Lỗi hệ thống, vui lòng thử lại." });
@@ -241,6 +368,7 @@ export default function BlogManagement() {
       if (response.ok) {
         setAlert({ type: "success", message: "Đã xóa bài viết." });
         setBlogs((prev) => prev.filter((b) => b._id !== blogId));
+        if (editingId === blogId) resetForm();
       } else {
         setAlert({ type: "error", message: "Xóa thất bại." });
       }
@@ -307,7 +435,8 @@ export default function BlogManagement() {
                       <tr><td colSpan={3} className="py-10 text-center text-slate-400">Chưa có bài viết nào.</td></tr>
                     ) : (
                       blogs.map((blog) => (
-                        <tr key={blog._id} className="hover:bg-slate-50 transition-colors">
+                        <tr key={blog._id}
+                          className={`hover:bg-slate-50 transition-colors ${editingId === blog._id ? "bg-blue-50" : ""}`}>
                           <td className="px-4 py-4">
                             <div className="h-14 w-20 overflow-hidden rounded-xl bg-slate-100">
                               {blog.coverImage
@@ -318,13 +447,34 @@ export default function BlogManagement() {
                           </td>
                           <td className="px-4 py-4">
                             <p className="font-bold text-slate-900 line-clamp-1">{blog.title}</p>
-                            <p className="text-xs text-slate-500">{formatDate(blog.createdAt)} · {blog.author}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{formatDate(blog.createdAt)} · {blog.author}</p>
+                            {blog.tags?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {blog.tags.map((tag) => (
+                                  <span key={tag} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-medium">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-4">
-                            <button onClick={() => handleDelete(blog._id)}
-                              className="text-rose-600 hover:text-rose-800 font-semibold">
-                              Xóa
-                            </button>
+                            <div className="flex flex-col gap-1.5">
+                              <button
+                                onClick={() => handleEdit(blog)}
+                                className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition whitespace-nowrap ${
+                                  editingId === blog._id
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                                }`}>
+                                {editingId === blog._id ? "✎ Đang sửa" : "Sửa"}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(blog._id)}
+                                className="text-xs font-semibold text-rose-600 hover:text-rose-800 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 transition whitespace-nowrap">
+                                Xóa
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -334,18 +484,64 @@ export default function BlogManagement() {
               </div>
             </section>
 
-            {/* Cột Phải: Form soạn bài */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h2 className="mb-6 text-xl font-bold text-slate-900">Soạn bài viết mới</h2>
+            {/* Cột Phải: Form soạn/chỉnh sửa bài */}
+            <section id="blog-form-section" className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">
+                  {editingId ? "✎ Chỉnh sửa bài viết" : "Soạn bài viết mới"}
+                </h2>
+                {editingId && (
+                  <button onClick={resetForm}
+                    className="text-xs text-slate-500 hover:text-slate-800 border border-slate-200 rounded-xl px-3 py-1.5 hover:bg-slate-50 transition">
+                    + Tạo bài mới
+                  </button>
+                )}
+              </div>
+
               <div className="space-y-5">
 
+                {/* Tiêu đề */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">Tiêu đề bài viết</label>
-                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+                  <input type="text" value={title}
+                    onChange={(e) => { setTitle(e.target.value); }}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
                     placeholder="Ví dụ: Top 5 sneaker retro hot nhất 2026..." />
                 </div>
 
+                {/* Slug */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Slug (URL)
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      → /blog/<span className="text-blue-500">{slugField || "..."}</span>
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={slugField}
+                    onChange={(e) => {
+                      setSlugManual(true);
+                      setSlugField(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-"));
+                    }}
+                    onFocus={() => setSlugManual(true)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+                    placeholder="vi-du-slug-bai-viet"
+                  />
+                  {!slugManual && (
+                    <p className="mt-1 text-xs text-slate-400">Tự động tạo từ tiêu đề. Chỉnh sửa để tuỳ chỉnh.</p>
+                  )}
+                  {slugManual && (
+                    <button
+                      type="button"
+                      onClick={() => { setSlugManual(false); setSlugField(toSlug(title)); }}
+                      className="mt-1 text-xs text-blue-500 hover:underline">
+                      ↺ Tạo lại từ tiêu đề
+                    </button>
+                  )}
+                </div>
+
+                {/* Excerpt */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">Mô tả ngắn (Excerpt)</label>
                   <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2}
@@ -353,21 +549,33 @@ export default function BlogManagement() {
                     placeholder="Tóm tắt nội dung bài viết..." />
                 </div>
 
+                {/* Cover Image */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">URL ảnh đại diện (cover)</label>
                   <input type="text" value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
                     placeholder="https://example.com/image.jpg" />
+                  {coverImage && (
+                    <img src={coverImage} alt="Cover preview"
+                      className="mt-2 h-28 w-full rounded-2xl object-cover border border-slate-200" />
+                  )}
                 </div>
 
-                {/* Editor + toolbar chèn ảnh */}
+                {/* Tags */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Tags
+                    <span className="ml-2 text-xs font-normal text-slate-400">Nhấn Enter hoặc dấu phẩy để thêm</span>
+                  </label>
+                  <TagInput tags={tags} onChange={setTags} />
+                </div>
+
+                {/* Content Editor */}
                 <div>
                   <div className="mb-2 flex items-center justify-between flex-wrap gap-2">
                     <label className="text-sm font-semibold text-slate-700">Nội dung bài viết</label>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs text-slate-400">Chèn:</span>
-
-                      {/* Ảnh đơn */}
                       <button type="button" onClick={() => setModal("image")}
                         className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition">
                         <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -377,8 +585,6 @@ export default function BlogManagement() {
                         </svg>
                         Ảnh đơn
                       </button>
-
-                      {/* Gallery */}
                       <button type="button" onClick={() => setModal("gallery")}
                         className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition">
                         <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -392,7 +598,6 @@ export default function BlogManagement() {
                     </div>
                   </div>
 
-                  {/* Textarea thay vì ReactQuill để hỗ trợ chèn block tự do */}
                   <textarea
                     ref={contentRef}
                     value={content}
@@ -406,7 +611,8 @@ export default function BlogManagement() {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                {/* Footer actions */}
+                <div className="flex items-center justify-between pt-2 flex-wrap gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={isPublished}
                       onChange={(e) => setIsPublished(e.target.checked)}
@@ -414,11 +620,24 @@ export default function BlogManagement() {
                     <span className="text-sm font-medium text-slate-600">Xuất bản ngay</span>
                   </label>
 
-                  <button onClick={handleSubmit} disabled={saving}
-                    className="rounded-2xl bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-slate-800 disabled:bg-slate-400 transition-all active:scale-95">
-                    {saving ? "Đang xử lý..." : "Đăng bài viết"}
-                  </button>
+                  <div className="flex gap-3">
+                    {editingId && (
+                      <button onClick={resetForm}
+                        className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+                        Hủy sửa
+                      </button>
+                    )}
+                    <button onClick={handleSubmit} disabled={saving}
+                      className="rounded-2xl bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-slate-800 disabled:bg-slate-400 transition-all active:scale-95">
+                      {saving
+                        ? "Đang xử lý..."
+                        : editingId
+                        ? "Lưu thay đổi"
+                        : "Đăng bài viết"}
+                    </button>
+                  </div>
                 </div>
+
               </div>
             </section>
 

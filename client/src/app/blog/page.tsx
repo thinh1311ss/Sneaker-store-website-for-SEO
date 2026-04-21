@@ -76,7 +76,6 @@ export default async function BlogList({
   const featured = filtered[0];
   const rest = filtered.slice(1);
 
-  // Blog list schema
   const blogListSchema = {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -88,10 +87,7 @@ export default async function BlogList({
       headline: blog.title,
       url: `${siteConfig.url}/blog/${blog.slug}`,
       datePublished: blog.createdAt,
-      author: {
-        "@type": "Person",
-        name: blog.author,
-      },
+      author: { "@type": "Person", name: blog.author },
       description: blog.excerpt,
       ...(blog.coverImage && { image: blog.coverImage }),
     })),
@@ -111,7 +107,7 @@ export default async function BlogList({
           <div>
             <h1
               className="text-6xl md:text-8xl font-black tracking-tighter text-gray-900 leading-none"
-              style={{ fontFamily: "'Georgia', serif" }}
+              style={{ fontFamily: "'Lora', Georgia, serif" }}
             >
               Blog
             </h1>
@@ -120,20 +116,17 @@ export default async function BlogList({
             </p>
           </div>
 
-          {/* Tag filter - Client Component vì cần interaction */}
           {allTags.length > 0 && (
             <BlogTagFilter tags={allTags} activeTag={activeTag} />
           )}
         </div>
 
-        {/* Empty state */}
         {filtered.length === 0 && (
           <div className="text-center py-24 text-gray-400">
             <p className="text-xl">Chưa có bài viết nào.</p>
           </div>
         )}
 
-        {/* Featured post - render trên server */}
         {featured && (
           <Link href={`/blog/${featured.slug}`} className="group block mb-12">
             <article className="grid md:grid-cols-2 gap-0 bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
@@ -164,7 +157,7 @@ export default async function BlogList({
                   </div>
                   <h2
                     className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-4 group-hover:text-red-600 transition-colors"
-                    style={{ fontFamily: "'Georgia', serif" }}
+                    style={{ fontFamily: "'Lora', Georgia, serif" }}
                   >
                     {featured.title}
                   </h2>
@@ -187,7 +180,6 @@ export default async function BlogList({
           </Link>
         )}
 
-        {/* Grid - render trên server */}
         {rest.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {rest.map((blog) => (
@@ -223,7 +215,7 @@ export default async function BlogList({
                     </div>
                     <h3
                       className="font-black text-gray-900 text-lg leading-tight mb-2 group-hover:text-red-600 transition-colors line-clamp-2"
-                      style={{ fontFamily: "'Georgia', serif" }}
+                      style={{ fontFamily: "'Lora', Georgia, serif" }}
                     >
                       {blog.title}
                     </h3>

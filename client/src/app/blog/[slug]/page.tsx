@@ -74,8 +74,8 @@ function formatDate(dateStr: string) {
 function renderMarkdown(md: string): string {
   return md
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold mt-8 mb-3 text-gray-900">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-black mt-10 mb-4 text-gray-900" style="font-family:Georgia,serif">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-black mt-12 mb-5 text-gray-900" style="font-family:Georgia,serif">$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-black mt-10 mb-4 text-gray-900" style="font-family:\'Lora\',Georgia,serif">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-black mt-12 mb-5 text-gray-900" style="font-family:\'Lora\',Georgia,serif">$1</h1>')
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
@@ -207,7 +207,7 @@ export default async function BlogDetail({
 
         {/* Title */}
         <h1 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-6"
-          style={{ fontFamily: "'Georgia', serif" }}>
+          style={{ fontFamily: "'Lora', Georgia, serif" }}>
           {blog.title}
         </h1>
 
