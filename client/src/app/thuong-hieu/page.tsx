@@ -29,6 +29,7 @@ const brandLogoMap: Record<string, string> = {
   'PUMA':          '/brands/PUMA.webp',
   'NIKE':          '/brands/NIKE.webp',
   'ADIDAS':        '/brands/ADIDAS.webp',
+  'CROCS':         '/brands/CROCS.webp',
 };
 
 export default async function BrandsPage() {

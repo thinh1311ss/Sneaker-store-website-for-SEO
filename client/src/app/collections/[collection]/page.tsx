@@ -30,6 +30,7 @@ const brand_banners: Record<string, string> = {
   PUMA: "/PUMA_banner.webp",
   NIKE: "/NIKE_banner.webp",
   ADIDAS: "/ADIDAS_banner.webp",
+  CROCS: "/CROCS_banner.jpg",
 };
 
 // FIX: Metadata tối ưu SEO — mỗi collection có title/description riêng biệt

@@ -263,12 +263,12 @@ export default function Footer() {
             <nav aria-label="Liên kết pháp lý">
               <ul className="flex gap-6 text-sm">
                 <li>
-                  <Link href="/dieu-khoan" className="text-gray-300 hover:text-white transition">
+                  <Link href="/ho-tro" className="text-gray-300 hover:text-white transition">
                     Điều khoản
                   </Link>
                 </li>
                 <li>
-                  <Link href="/bao-mat" className="text-gray-300 hover:text-white transition">
+                  <Link href="/ho-tro" className="text-gray-300 hover:text-white transition">
                     Bảo mật
                   </Link>
                 </li>
