@@ -29,16 +29,16 @@ export default function AboutPage() {
           priority
         />
         <div className="relative z-10 text-center px-4 md:px-16 max-w-[1000px]">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 uppercase tracking-tight">
-            CHÍNH HÃNG
+          <h1 className="text-5xl md:text-6xl lg:text-8xl font-black text-white mb-6 uppercase tracking-tight">
+            ĐỒNG HÀNH
             <br /> TRÊN TỪNG BƯỚC CHÂN
           </h1>
           <p className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto italic font-medium">
-            Được thiết kế cho tốc độ. Xây dựng cho văn hoá. Sneaker Store là nơi
-            hội tụ giữa hiệu suất và phong cách đường phố.
+            Được thiết kế cho tốc độ. Xây dựng cho văn hoá. UIT Sneakers VietNam là nơi
+            hội tụ giữa hiệu suất và phong cách.
           </p>
           <Link
-            href="/san-pham"
+            href="/#products"
             className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold text-sm md:text-base px-10 py-5 rounded uppercase tracking-wider transition-all transform hover:scale-105 shadow-xl"
           >
             KHÁM PHÁ BỘ SƯU TẬP
@@ -55,14 +55,14 @@ export default function AboutPage() {
             </h2>
             <div className="space-y-6 text-lg text-gray-600 leading-relaxed">
               <p>
-                Được thành lập vào năm 2020, Sneaker Store bắt đầu như một dự án
+                Được thành lập vào năm 2024, UIT Sneakers VietNam bắt đầu như một dự án
                 đầy đam mê tại một không gian lưu trữ nhỏ bé. Sứ mệnh của chúng
                 tôi ngay từ ngày tiên khởi rất rõ ràng: thu hẹp khoảng cách giữa
                 hiệu suất thể thao kỹ thuật cao và tính thẩm mỹ độc đáo của thời
                 trang đường phố.
               </p>
               <p>
-                Qua nhiều năm, chúng tôi đã phát triển thành điểm đến hàng đầu
+                Qua các năm, chúng tôi đã phát triển thành điểm đến hàng đầu
                 cho các nhà sưu tập và vận động viên. Chúng tôi không chỉ bán
                 giày; chúng tôi kết nối, chọn lọc nhịp đập của sự đổi mới để
                 mang tới những sản phẩm tuyệt vời nhất.
@@ -111,7 +111,7 @@ export default function AboutPage() {
       <section className="px-4 md:px-16 py-24 max-w-7xl mx-auto">
         <div className="text-center mb-16 md:mb-24">
           <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">
-            Tiêu Chuẩn Của SNEAKER STORE
+            Tiêu Chuẩn Của UIT SNEAKERS VIETNAM
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
