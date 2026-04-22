@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from 'next/script';
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 import { siteConfig, generateOrganizationSchema } from "@/lib/seo";
@@ -98,6 +99,19 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+          {/* Google Analytics */}
+  <Script
+    src="https://www.googletagmanager.com/gtag/js?id=G-5BZ31EGL10"
+    strategy="afterInteractive"
+  />
+  <Script id="google-analytics" strategy="afterInteractive">
+    {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5BZ31EGL10');
+    `}
+  </Script>
         <AuthProvider>
           <CartProvider>
             <Header />
