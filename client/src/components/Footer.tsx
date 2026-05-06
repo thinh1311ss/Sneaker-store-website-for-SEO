@@ -112,6 +112,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { name: "Giới thiệu", href: "/gioi-thieu" },
+                { name: "Hệ thống cửa hàng", href: "/he-thong-cua-hang" },
                 { name: "Thông tin liên hệ", href: "/ho-tro#lien-he" },
                 { name: "Điều khoản & điều kiện", href: "/ho-tro#dieu-khoan" },
                 { name: "Hợp tác cùng chúng tôi", href: "/ho-tro#hop-tac" },

@@ -28,6 +28,24 @@ const nextConfig = {
   // React strict mode
   reactStrictMode: true,
 
+  // ✅ THÊM MỚI: Redirect /thuong-hieu → /collections (fix 404)
+  async redirects() {
+    return [
+      {
+        // Redirect tất cả /thuong-hieu/[brand] → /collections/[brand]
+        source: '/thuong-hieu/:brand',
+        destination: '/collections/:brand',
+        permanent: true, // 301 redirect — giữ nguyên SEO juice
+      },
+      {
+        // Fix broken link /he-thong-cua-hang → trang gioi-thieu
+        source: '/he-thong-cua-hang',
+        destination: '/gioi-thieu',
+        permanent: true,
+      },
+    ];
+  },
+
   // Custom headers - thêm cache cho static assets
   async headers() {
     return [
