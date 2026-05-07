@@ -34,6 +34,22 @@ export interface Product {
   gender?: 'Nam' | 'Nữ' | 'Unisex';
 }
 
+// ✅ THÊM MỚI: Interface Blog Post
+export interface BlogPost {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content?: string;
+  thumbnail?: string;
+  author?: string;
+  category?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  published?: boolean;
+}
+
 // ── Interface MongoDB trả về ─────────────────────────────────────────────────
 interface MongoProduct {
   _id: string;
@@ -118,15 +134,11 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
-// ── API functions ────────────────────────────────────────────────────────────
-// FIX: Dùng next.revalidate thay vì cache: 'no-store'
-// → Cho phép ISR cache HTML trên server, chỉ fetch lại sau 5 phút
-// → Giảm TTFB + Speed Index đáng kể
-
+// ── API functions — Product ──────────────────────────────────────────────────
 export async function getAllProductsFromAPI(): Promise<Product[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/api/product`, {
-      next: { revalidate: 300 }, // Cache 5 phút
+      next: { revalidate: 300 },
     });
     if (!res.ok) return [];
     const data: MongoProduct[] = await res.json();
@@ -199,6 +211,76 @@ export async function searchProductsFromAPI(query: string): Promise<Product[]> {
   }
 }
 
+// ── API functions — Blog ─────────────────────────────────────────────────────
+// ✅ THÊM MỚI: Lấy tất cả bài blog (dùng cho sitemap + trang danh sách)
+export async function getAllBlogPostsFromAPI(): Promise<BlogPost[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/blog`, {
+      next: { revalidate: 300 }, // Cache 5 phút
+    });
+    if (!res.ok) return [];
+    const data: BlogPost[] = await res.json();
+    // Chỉ lấy bài đã published
+    return data.filter((post) => post.published !== false);
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
+  }
+}
+
+// ✅ THÊM MỚI: Lấy 1 bài blog theo slug
+export async function getBlogPostBySlugFromAPI(slug: string): Promise<BlogPost | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const data: BlogPost = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    return null;
+  }
+}
+
+// ✅ THÊM MỚI: Lấy blog có phân trang
+export async function getBlogPostsWithPaginationFromAPI(
+  page: number = 1,
+  limit: number = 9
+): Promise<{ posts: BlogPost[]; total: number; totalPages: number }> {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/blog?page=${page}&limit=${limit}`,
+      { next: { revalidate: 300 } }
+    );
+    if (!res.ok) return { posts: [], total: 0, totalPages: 0 };
+    const data = await res.json();
+
+    // Nếu API trả về object có pagination
+    if (data.posts && data.total !== undefined) {
+      return {
+        posts: data.posts.filter((p: BlogPost) => p.published !== false),
+        total: data.total,
+        totalPages: Math.ceil(data.total / limit),
+      };
+    }
+
+    // Nếu API trả về array thẳng → tự phân trang
+    const allPosts: BlogPost[] = Array.isArray(data)
+      ? data.filter((p: BlogPost) => p.published !== false)
+      : [];
+    const start = (page - 1) * limit;
+    return {
+      posts: allPosts.slice(start, start + limit),
+      total: allPosts.length,
+      totalPages: Math.ceil(allPosts.length / limit),
+    };
+  } catch (error) {
+    console.error('Error fetching blog posts with pagination:', error);
+    return { posts: [], total: 0, totalPages: 0 };
+  }
+}
+
 // ── Backward compatible exports ──────────────────────────────────────────────
 export const getAllProducts = getAllProductsFromAPI;
 export const getProductBySlug = getProductBySlugFromAPI;
@@ -207,3 +289,8 @@ export const getAllBrands = getAllBrandsFromAPI;
 export const getAllSlugs = getAllSlugsFromAPI;
 export const getSaleProducts = getSaleProductsFromAPI;
 export const searchProducts = searchProductsFromAPI;
+
+// ✅ THÊM MỚI: Blog exports
+export const getAllBlogPosts = getAllBlogPostsFromAPI;
+export const getBlogPostBySlug = getBlogPostBySlugFromAPI;
+export const getBlogPostsWithPagination = getBlogPostsWithPaginationFromAPI;
