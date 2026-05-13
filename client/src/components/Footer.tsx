@@ -91,7 +91,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href={SOCIAL_LINKS.tiktok}
+                  href="https://www.tiktok.com/@uitsneakersvietnam"
                   aria-label="Theo dõi UIT Sneakers trên TikTok"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -216,7 +216,7 @@ export default function Footer() {
                   </svg>
                 </div>
                 <span className="text-gray-300 text-sm">    
-                  Hàn Thuyên, Khu phố 6, P.Linh Xuân, Ho Chi Minh City, Vietnam
+                    49 Thống Nhất, Bình Thọ, Thủ Đức, Hồ Chí Minh 700000, Việt Nam
                 </span>
               </li>
               <li className="flex items-center gap-3">
