@@ -39,7 +39,7 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
-      // ✅ Fix /blog/blog?tag=... → /blog?tag=... (lỗi nhóm 3 CSV)
+      // ✅ Fix /blog/blog?tag=... → /blog?tag=...
       {
         source: '/blog/blog',
         destination: '/blog',
@@ -49,6 +49,23 @@ const nextConfig = {
       {
         source: '/forgot-password',
         destination: '/login',
+        permanent: false,
+      },
+      // ✅ Fix nhóm 4 — redirect đến đúng section
+      {
+        source: '/ho-tro/chinh-sach-doi-tra',
+        destination: '/ho-tro#doi-tra-bao-hanh',
+        permanent: true,
+      },
+      {
+        source: '/ho-tro/huong-dan-mua-hang',
+        destination: '/ho-tro#dat-hang',
+        permanent: true,
+      },
+      // ✅ Fix nhóm 5 — blog link chết
+      {
+        source: '/blog/7-retro-sneakers-tot-nhat-2026',
+        destination: '/blog',
         permanent: false,
       },
     ];
