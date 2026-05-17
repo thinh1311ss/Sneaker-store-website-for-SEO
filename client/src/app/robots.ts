@@ -12,11 +12,22 @@ export default function robots(): MetadataRoute.Robots {
           '/login/',
           '/profile/',
           '/orders/',
-          // Bỏ /_next/ — không nên block
         ],
       },
       {
         userAgent: 'Googlebot',
+        allow: '/',
+      },
+      {
+        userAgent: 'facebookexternalhit',
+        allow: '/',
+      },
+      {
+        userAgent: 'Twitterbot',
+        allow: '/',
+      },
+      {
+        userAgent: 'LinkedInBot',
         allow: '/',
       },
     ],
