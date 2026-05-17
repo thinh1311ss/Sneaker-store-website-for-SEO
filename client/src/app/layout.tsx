@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import Script from 'next/script';
+import Script from "next/script";
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
-import { siteConfig, generateOrganizationSchema } from "@/lib/seo";
+import {
+  siteConfig,
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+} from "@/lib/seo";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CartProvider } from "@/context/CartContext";
@@ -92,11 +96,21 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* Organization Schema JSON-LD */}
+        {/* ✅ Organization Schema JSON-LD — thông tin doanh nghiệp */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateOrganizationSchema()),
+          }}
+        />
+
+        {/* ✅ WebSite Schema JSON-LD — MỚI THÊM
+            Giúp Google hiển thị Sitelinks Search Box
+            Ref: https://developers.google.com/search/docs/appearance/structured-data/sitelinks-searchbox */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebSiteSchema()),
           }}
         />
 
@@ -118,7 +132,6 @@ export default function RootLayout({
       </head>
 
       <body className={inter.className}>
-
         {/* Google Tag Manager — noscript (ngay đầu body) */}
         <noscript>
           <iframe

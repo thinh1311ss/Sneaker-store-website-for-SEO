@@ -1,5 +1,4 @@
 export const siteConfig = {
-  // FIX: Domain thật
   name: "UIT Sneakers Vietnam",
   description:
     "Cửa hàng giày sneaker chính hãng hàng đầu Việt Nam. Nike, Adidas, Puma, HOKA, On Running, Under Armour, Asics với giá tốt nhất.",
@@ -25,8 +24,6 @@ export const siteConfig = {
   creator: "UIT Sneakers Vietnam",
 };
 
-// Product Schema đầy đủ cho Google Rich Results
-// Ref: https://developers.google.com/search/docs/appearance/structured-data/product
 export function generateProductSchema(product: {
   name: string;
   description: string;
@@ -40,18 +37,16 @@ export function generateProductSchema(product: {
   slug?: string;
   quantity?: number;
 }) {
-  // Xác định availability dựa trên quantity
-  const availability = (product.quantity ?? 1) > 0
-    ? "https://schema.org/InStock"
-    : "https://schema.org/OutOfStock";
+  const availability =
+    (product.quantity ?? 1) > 0
+      ? "https://schema.org/InStock"
+      : "https://schema.org/OutOfStock";
 
-  // Ngày hết hạn giá (30 ngày từ hiện tại)
-  const priceValidUntil = new Date(
-    Date.now() + 30 * 24 * 60 * 60 * 1000
-  ).toISOString().split('T')[0]; // Format YYYY-MM-DD
+  const priceValidUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
 
-  // Tạo URL sản phẩm
-  const brandSlug = product.brand.toLowerCase().replace(/ /g, '-');
+  const brandSlug = product.brand.toLowerCase().replace(/ /g, "-");
   const productUrl = product.slug
     ? `${siteConfig.url}/collections/${brandSlug}/products/${product.slug}`
     : siteConfig.url;
@@ -60,24 +55,19 @@ export function generateProductSchema(product: {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description || `${product.name} - Giày ${product.brand} chính hãng tại UIT Sneakers Vietnam`,
+    description:
+      product.description ||
+      `${product.name} - Giày ${product.brand} chính hãng tại UIT Sneakers Vietnam`,
     url: productUrl,
-
-    // Hình ảnh - Google khuyến nghị nhiều ảnh
-    image: product.images && product.images.length > 0
-      ? product.images
-      : [product.image],
-
-    // Thương hiệu
+    image:
+      product.images && product.images.length > 0
+        ? product.images
+        : [product.image],
     brand: {
       "@type": "Brand",
       name: product.brand,
     },
-
-    // SKU (dùng slug làm SKU)
-    sku: product.slug || product.name.toLowerCase().replace(/ /g, '-'),
-
-    // Tình trạng sản phẩm
+    sku: product.slug || product.name.toLowerCase().replace(/ /g, "-"),
     offers: {
       "@type": "Offer",
       url: productUrl,
@@ -86,14 +76,10 @@ export function generateProductSchema(product: {
       availability: availability,
       itemCondition: "https://schema.org/NewCondition",
       priceValidUntil: priceValidUntil,
-
-      // Người bán
       seller: {
         "@type": "Organization",
         name: siteConfig.name,
       },
-
-      // Chính sách giao hàng
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {
@@ -121,21 +107,18 @@ export function generateProductSchema(product: {
           },
         },
       },
-
-      // Chính sách đổi trả
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
         applicableCountry: "VN",
-        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 30,
         returnMethod: "https://schema.org/ReturnByMail",
         returnFees: "https://schema.org/FreeReturn",
       },
     },
-
-    // Size có sẵn
     ...(product.sizes && {
-      additionalProperty: product.sizes.split(", ").map(size => ({
+      additionalProperty: product.sizes.split(", ").map((size) => ({
         "@type": "PropertyValue",
         name: "Size",
         value: size,
@@ -144,7 +127,7 @@ export function generateProductSchema(product: {
   };
 }
 
-// Breadcrumb Schema - giúp Google hiển thị breadcrumb trong search results
+// Breadcrumb Schema
 export function generateBreadcrumbSchema(
   items: { name: string; url: string }[]
 ) {
@@ -160,7 +143,7 @@ export function generateBreadcrumbSchema(
   };
 }
 
-// Organization Schema - thông tin doanh nghiệp
+// Organization Schema — đã cập nhật thông tin thật
 export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
@@ -169,36 +152,69 @@ export function generateOrganizationSchema() {
     url: siteConfig.url,
     logo: `${siteConfig.url}/Logo_UITSneaker_v2.webp`,
     description: siteConfig.description,
-    // TODO: Thay bằng URL mạng xã hội thật
+    // Đã cập nhật link mạng xã hội thật
     sameAs: [
-      // "https://facebook.com/uitsneakers",
-      // "https://instagram.com/uitsneakers",
-      // "https://tiktok.com/@uitsneakers",
+      "https://www.facebook.com/profile.php?id=61568709059553",
+      "https://www.instagram.com/uit_sneakersvn/",
+      "https://www.tiktok.com/@uitsneakersvietnam",
     ],
     contactPoint: {
       "@type": "ContactPoint",
-      // TODO: Thay bằng số điện thoại thật
-      telephone: "+84-xxx-xxx-xxx",
+      // Đã cập nhật số điện thoại thật
+      telephone: "+84396528253",
       contactType: "customer service",
       availableLanguage: "Vietnamese",
       areaServed: "VN",
+      hoursAvailable: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday","Tuesday","Wednesday","Thursday",
+          "Friday","Saturday","Sunday",
+        ],
+        opens: "08:00",
+        closes: "22:00",
+      },
     },
+    // Đã cập nhật địa chỉ thật
     address: {
       "@type": "PostalAddress",
-      streetAddress: "123 Nguyễn Huệ",
-      addressLocality: "Quận 1",
-      addressRegion: "TP.HCM",
+      streetAddress: "49 Thống Nhất, Bình Thọ",
+      addressLocality: "Thủ Đức",
+      addressRegion: "Hồ Chí Minh",
+      postalCode: "700000",
       addressCountry: "VN",
+    },
+    email: "uitsneakersvn@gmail.com",
+  };
+}
+
+// WebSite Schema + SearchAction — MỚI THÊM
+// Giúp Google hiển thị Sitelinks Search Box trên kết quả tìm kiếm
+export function generateWebSiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    description: siteConfig.description,
+    inLanguage: "vi-VN",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteConfig.url}/search?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
     },
   };
 }
 
-// Collection Schema - cho trang danh sách sản phẩm theo brand
+// Collection Schema — cho trang danh sách sản phẩm theo brand
 export function generateCollectionSchema(
   brand: string,
   products: { name: string; price: number; image: string; slug: string }[]
 ) {
-  const brandSlug = brand.toLowerCase().replace(/ /g, '-');
+  const brandSlug = brand.toLowerCase().replace(/ /g, "-");
 
   return {
     "@context": "https://schema.org",
